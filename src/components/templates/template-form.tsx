@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { WORKOUT_TYPES, WEIGHT_UNITS } from "@/lib/constants/workout-types";
+import { ExerciseCombobox } from "@/components/ui/exercise-combobox";
 import { useCreateTemplate, useUpdateTemplate } from "@/hooks/use-templates";
 
 const templateExerciseSchema = z.object({
@@ -246,7 +247,11 @@ export function TemplateForm({ initialData, mode = "create" }: TemplateFormProps
                       <FormItem className="flex-1 mr-4">
                         <FormLabel>Exercise Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Bench Press" {...field} />
+                          <ExerciseCombobox
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder="Select exercise..."
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

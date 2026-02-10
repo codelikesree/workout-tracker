@@ -35,6 +35,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { WORKOUT_TYPES, WEIGHT_UNITS } from "@/lib/constants/workout-types";
+import { ExerciseCombobox } from "@/components/ui/exercise-combobox";
 import { useCreateWorkout, useUpdateWorkout } from "@/hooks/use-workouts";
 import { useTemplates } from "@/hooks/use-templates";
 
@@ -417,7 +418,11 @@ function ExerciseField({
             <FormItem className="flex-1 mr-4">
               <FormLabel>Exercise Name</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Bench Press" {...field} />
+                <ExerciseCombobox
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select exercise..."
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
