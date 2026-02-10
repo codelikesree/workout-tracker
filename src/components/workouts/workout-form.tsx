@@ -37,7 +37,7 @@ import { cn } from "@/lib/utils";
 import { WORKOUT_TYPES, WEIGHT_UNITS } from "@/lib/constants/workout-types";
 import { ExerciseCombobox } from "@/components/ui/exercise-combobox";
 import { useCreateWorkout, useUpdateWorkout } from "@/hooks/use-workouts";
-import { useTemplates } from "@/hooks/use-templates";
+import { useTemplates, useTemplateForWorkout } from "@/hooks/use-templates";
 
 const exerciseSetSchema = z.object({
   setNumber: z.number().int().positive(),
@@ -90,6 +90,7 @@ export function WorkoutForm({ initialData, mode = "create" }: WorkoutFormProps) 
   const createWorkout = useCreateWorkout();
   const updateWorkout = useUpdateWorkout();
   const { data: templatesData } = useTemplates();
+  const loadTemplate = useTemplateForWorkout();
   const [selectedTemplate, setSelectedTemplate] = useState<string>("");
 
   const form = useForm<WorkoutFormData>({
@@ -136,37 +137,14 @@ export function WorkoutForm({ initialData, mode = "create" }: WorkoutFormProps) 
     router.push("/workouts");
   };
 
-  const handleTemplateSelect = (templateId: string) => {
+  const handleTemplateSelect = async (templateId: string) => {
     setSelectedTemplate(templateId);
-    const template = templatesData?.templates?.find(
-      (t: { _id: string }) => t._id === templateId
-    );
-    if (template) {
-      form.setValue("workoutName", template.name);
-      form.setValue("type", template.type);
-      form.setValue(
-        "exercises",
-        template.exercises.map(
-          (
-            ex: {
-              name: string;
-              targetSets: number;
-              targetReps: number;
-              targetWeight?: number;
-              weightUnit?: "kg" | "lbs";
-            },
-            idx: number
-          ) => ({
-            name: ex.name,
-            sets: Array.from({ length: ex.targetSets }, (_, i) => ({
-              setNumber: i + 1,
-              reps: ex.targetReps,
-              weight: ex.targetWeight || 0,
-              weightUnit: ex.weightUnit || "kg",
-            })),
-          })
-        )
-      );
+    const payload = await loadTemplate.mutateAsync(templateId);
+    form.setValue("workoutName", payload.workoutName);
+    form.setValue("type", payload.type as WorkoutFormData["type"]);
+    form.setValue("exercises", payload.exercises);
+    if (payload.duration) {
+      form.setValue("duration", payload.duration);
     }
   };
 

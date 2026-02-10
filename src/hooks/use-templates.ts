@@ -91,6 +91,44 @@ export function useUpdateTemplate() {
   });
 }
 
+export interface WorkoutReadyPayload {
+  workoutName: string;
+  type: string;
+  exercises: Array<{
+    name: string;
+    sets: Array<{
+      setNumber: number;
+      reps: number;
+      weight: number;
+      weightUnit: "kg" | "lbs";
+    }>;
+  }>;
+  duration?: number;
+}
+
+export function useTemplateForWorkout() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string): Promise<WorkoutReadyPayload> => {
+      const res = await fetch(`/api/templates/${id}/use`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to load template");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["templates"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
 export function useDeleteTemplate() {
   const queryClient = useQueryClient();
 
