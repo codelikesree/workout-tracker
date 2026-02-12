@@ -44,9 +44,9 @@ export function FinishWorkoutSummary() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-dvh bg-background flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background border-b px-4 py-3 flex items-center gap-3">
+      <div className="shrink-0 z-10 bg-background border-b px-4 py-3 flex items-center gap-3">
         <Button
           type="button"
           variant="ghost"
@@ -58,7 +58,7 @@ export function FinishWorkoutSummary() {
         <h1 className="text-lg font-semibold">Workout Summary</h1>
       </div>
 
-      <div className="flex-1 p-4 space-y-4 max-w-lg mx-auto w-full">
+      <div className="flex-1 overflow-y-auto overscroll-none p-4 space-y-4 max-w-lg mx-auto w-full">
         {/* Workout Name */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Workout Name</label>

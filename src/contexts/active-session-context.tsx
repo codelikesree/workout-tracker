@@ -34,6 +34,7 @@ type SessionAction =
       data: Partial<ActiveSessionSet>;
     }
   | { type: "COMPLETE_SET"; exerciseIndex: number; setIndex: number }
+  | { type: "UNCOMPLETE_SET"; exerciseIndex: number; setIndex: number }
   | { type: "ADD_SET"; exerciseIndex: number }
   | { type: "REMOVE_SET"; exerciseIndex: number; setIndex: number }
   | { type: "ADD_EXERCISE"; name: string }
@@ -132,8 +133,16 @@ function sessionReducer(
     case "START_WORKOUT":
       return configToSession(action.payload);
 
-    case "REHYDRATE":
-      return action.session;
+    case "REHYDRATE": {
+      const rehydrated = { ...action.session };
+      // Recalculate elapsed time from startedAt to account for browser-closed time
+      if (rehydrated.startedAt) {
+        rehydrated.elapsedSeconds = Math.floor(
+          (Date.now() - new Date(rehydrated.startedAt).getTime()) / 1000
+        );
+      }
+      return rehydrated;
+    }
 
     case "DISCARD":
       return null;
@@ -153,7 +162,12 @@ function sessionReducer(
 
     case "TICK_ELAPSED":
       if (!state) return null;
-      return { ...state, elapsedSeconds: state.elapsedSeconds + 1 };
+      return {
+        ...state,
+        elapsedSeconds: Math.floor(
+          (Date.now() - new Date(state.startedAt).getTime()) / 1000
+        ),
+      };
 
     case "UPDATE_SET": {
       if (!state) return null;
@@ -212,6 +226,21 @@ function sessionReducer(
         status: restTimer ? "resting" : "active",
         restTimer,
       };
+    }
+
+    case "UNCOMPLETE_SET": {
+      if (!state) return null;
+      const exercises = [...state.exercises];
+      const exercise = { ...exercises[action.exerciseIndex] };
+      const sets = [...exercise.sets];
+      sets[action.setIndex] = {
+        ...sets[action.setIndex],
+        isCompleted: false,
+        completedAt: null,
+      };
+      exercise.sets = sets;
+      exercises[action.exerciseIndex] = exercise;
+      return { ...state, exercises };
     }
 
     case "ADD_SET": {
@@ -392,6 +421,7 @@ interface ActiveSessionContextValue {
     data: Partial<ActiveSessionSet>
   ) => void;
   completeSet: (exerciseIndex: number, setIndex: number) => void;
+  uncompleteSet: (exerciseIndex: number, setIndex: number) => void;
   addSet: (exerciseIndex: number) => void;
   removeSet: (exerciseIndex: number, setIndex: number) => void;
 
@@ -582,6 +612,13 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
     []
   );
 
+  const uncompleteSet = useCallback(
+    (exerciseIndex: number, setIndex: number) => {
+      dispatch({ type: "UNCOMPLETE_SET", exerciseIndex, setIndex });
+    },
+    []
+  );
+
   const addSet = useCallback((exerciseIndex: number) => {
     dispatch({ type: "ADD_SET", exerciseIndex });
   }, []);
@@ -690,6 +727,7 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
     resumeWorkout,
     updateSet,
     completeSet,
+    uncompleteSet,
     addSet,
     removeSet,
     addExercise,

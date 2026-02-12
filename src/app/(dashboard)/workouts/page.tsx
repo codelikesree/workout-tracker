@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Plus, Dumbbell, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { WorkoutCard } from "@/components/workouts/workout-card";
 import { useWorkouts } from "@/hooks/use-workouts";
 import { WORKOUT_TYPES } from "@/lib/constants/workout-types";
+import { StartWorkoutSheet } from "@/components/workout/start-workout-sheet";
 
 interface Exercise {
   name: string;
@@ -36,6 +36,7 @@ interface Workout {
 
 export default function WorkoutsPage() {
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [showStartSheet, setShowStartSheet] = useState(false);
   const { data, isLoading } = useWorkouts({
     type: typeFilter === "all" ? undefined : typeFilter,
   });
@@ -49,11 +50,9 @@ export default function WorkoutsPage() {
             View and manage your workout logs
           </p>
         </div>
-        <Button asChild>
-          <Link href="/workouts/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Log Workout
-          </Link>
+        <Button onClick={() => setShowStartSheet(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Start Workout
         </Button>
       </div>
 
@@ -97,11 +96,9 @@ export default function WorkoutsPage() {
           <p className="text-muted-foreground mb-4">
             Start tracking your fitness journey by logging your first workout.
           </p>
-          <Button asChild>
-            <Link href="/workouts/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Log Your First Workout
-            </Link>
+          <Button onClick={() => setShowStartSheet(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Start Your First Workout
           </Button>
         </div>
       )}
@@ -132,6 +129,11 @@ export default function WorkoutsPage() {
           </Button>
         </div>
       )}
+
+      <StartWorkoutSheet
+        open={showStartSheet}
+        onOpenChange={setShowStartSheet}
+      />
     </div>
   );
 }

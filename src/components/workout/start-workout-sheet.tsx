@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Dumbbell, FileText, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +10,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { useActiveSession } from "@/contexts/active-session-context";
-import { useTemplates, useTemplateForWorkout } from "@/hooks/use-templates";
+import { useTemplates } from "@/hooks/use-templates";
+import { useStartFromTemplate } from "@/hooks/use-start-from-template";
 import type { StartWorkoutConfig } from "@/lib/types/active-session";
 
 interface StartWorkoutSheetProps {
@@ -24,12 +24,9 @@ export function StartWorkoutSheet({
   onOpenChange,
 }: StartWorkoutSheetProps) {
   const router = useRouter();
-  const { startWorkout, setLastWorkoutData } = useActiveSession();
+  const { startWorkout } = useActiveSession();
   const { data: templatesData } = useTemplates();
-  const loadTemplate = useTemplateForWorkout();
-  const [loadingTemplateId, setLoadingTemplateId] = useState<string | null>(
-    null
-  );
+  const { startFromTemplate, loadingTemplateId } = useStartFromTemplate();
 
   const handleEmptyWorkout = () => {
     const config: StartWorkoutConfig = {
@@ -49,51 +46,8 @@ export function StartWorkoutSheet({
   };
 
   const handleTemplateSelect = async (templateId: string) => {
-    setLoadingTemplateId(templateId);
-    try {
-      const payload = await loadTemplate.mutateAsync(templateId);
-
-      const config: StartWorkoutConfig = {
-        workoutName: payload.workoutName,
-        type: payload.type as StartWorkoutConfig["type"],
-        templateId,
-        exercises: payload.exercises.map((ex) => ({
-          name: ex.name,
-          sets: ex.sets.map((s) => ({
-            targetReps: s.reps,
-            targetWeight: s.weight,
-            weightUnit: s.weightUnit,
-          })),
-          restTime: 90,
-        })),
-      };
-
-      startWorkout(config);
-
-      // Fetch last workout stats for these exercises
-      const exerciseNames = payload.exercises.map((ex) => ex.name);
-      if (exerciseNames.length > 0) {
-        try {
-          const params = new URLSearchParams({
-            exercises: exerciseNames.join(","),
-          });
-          const res = await fetch(`/api/workouts/last-stats?${params}`);
-          if (res.ok) {
-            const data = await res.json();
-            setLastWorkoutData(data.stats);
-          }
-        } catch {
-          // Non-critical, continue without last workout data
-        }
-      }
-
-      onOpenChange(false);
-      router.push("/workout/active");
-    } catch {
-      // Error handled by the mutation's onError
-    } finally {
-      setLoadingTemplateId(null);
-    }
+    await startFromTemplate(templateId);
+    onOpenChange(false);
   };
 
   const templates = templatesData?.templates || [];

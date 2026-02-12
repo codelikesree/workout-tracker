@@ -24,6 +24,7 @@ export function ExerciseCardActive({
 }: ExerciseCardActiveProps) {
   const {
     completeSet,
+    uncompleteSet,
     addSet,
     removeExercise,
     incrementReps,
@@ -103,6 +104,7 @@ export function ExerciseCardActive({
                 set={set}
                 lastWorkoutSet={lastSet}
                 onComplete={() => completeSet(exerciseIndex, setIndex)}
+                onUncomplete={() => uncompleteSet(exerciseIndex, setIndex)}
                 onIncrementReps={() => incrementReps(exerciseIndex, setIndex)}
                 onDecrementReps={() => decrementReps(exerciseIndex, setIndex)}
                 onIncrementWeight={() =>

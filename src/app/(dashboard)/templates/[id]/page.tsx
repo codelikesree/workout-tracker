@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useTemplate, useDeleteTemplate } from "@/hooks/use-templates";
+import { useStartFromTemplate } from "@/hooks/use-start-from-template";
 import { WORKOUT_TYPES } from "@/lib/constants/workout-types";
 
 interface TemplateExercise {
@@ -38,6 +39,7 @@ export default function TemplateDetailPage({
   const router = useRouter();
   const { data, isLoading } = useTemplate(id);
   const deleteTemplate = useDeleteTemplate();
+  const { startFromTemplate, loadingTemplateId } = useStartFromTemplate();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   if (isLoading) {
@@ -79,11 +81,12 @@ export default function TemplateDetailPage({
           </Link>
         </Button>
         <div className="flex gap-2">
-          <Button asChild>
-            <Link href={`/workouts/new?template=${template._id}`}>
-              <Dumbbell className="mr-2 h-4 w-4" />
-              Use Template
-            </Link>
+          <Button
+            onClick={() => startFromTemplate(template._id)}
+            disabled={loadingTemplateId !== null}
+          >
+            <Dumbbell className="mr-2 h-4 w-4" />
+            {loadingTemplateId === template._id ? "Starting..." : "Start Workout"}
           </Button>
           <Button variant="outline" asChild>
             <Link href={`/templates/${template._id}/edit`}>

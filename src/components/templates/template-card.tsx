@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useDeleteTemplate } from "@/hooks/use-templates";
+import { useStartFromTemplate } from "@/hooks/use-start-from-template";
 import { WORKOUT_TYPES } from "@/lib/constants/workout-types";
 
 interface TemplateExercise {
@@ -50,6 +51,7 @@ interface TemplateCardProps {
 export function TemplateCard({ template }: TemplateCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const deleteTemplate = useDeleteTemplate();
+  const { startFromTemplate, loadingTemplateId } = useStartFromTemplate();
 
   const typeLabel =
     WORKOUT_TYPES.find((t) => t.value === template.type)?.label || template.type;
@@ -92,11 +94,12 @@ export function TemplateCard({ template }: TemplateCardProps) {
                   View Details
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/workouts/new?template=${template._id}`}>
-                  <Dumbbell className="mr-2 h-4 w-4" />
-                  Use Template
-                </Link>
+              <DropdownMenuItem
+                onClick={() => startFromTemplate(template._id)}
+                disabled={loadingTemplateId !== null}
+              >
+                <Dumbbell className="mr-2 h-4 w-4" />
+                {loadingTemplateId === template._id ? "Starting..." : "Start Workout"}
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href={`/templates/${template._id}/edit`}>

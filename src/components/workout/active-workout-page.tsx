@@ -75,9 +75,9 @@ export function ActiveWorkoutPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="h-dvh bg-background flex flex-col overflow-hidden">
       {/* Top bar */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-4 py-3">
+      <div className="shrink-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 min-w-0">
             <Button
@@ -113,12 +113,12 @@ export function ActiveWorkoutPage() {
       </div>
 
       {/* Rest timer */}
-      <div className="px-4 pt-3">
+      <div className="shrink-0 px-4 pt-3">
         <RestTimerInline />
       </div>
 
       {/* Exercise list */}
-      <div ref={exerciseListRef} className="flex-1 p-4 space-y-4">
+      <div ref={exerciseListRef} className="flex-1 overflow-y-auto overscroll-none p-4 space-y-4">
         {session.exercises.map((exercise, exerciseIndex) => (
           <ExerciseCardActive
             key={exercise.id}

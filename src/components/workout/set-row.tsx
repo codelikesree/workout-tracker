@@ -11,6 +11,7 @@ interface SetRowProps {
   set: ActiveSessionSet;
   lastWorkoutSet?: { reps: number; weight: number; weightUnit: string };
   onComplete: () => void;
+  onUncomplete: () => void;
   onIncrementReps: () => void;
   onDecrementReps: () => void;
   onIncrementWeight: () => void;
@@ -22,6 +23,7 @@ export function SetRow({
   set,
   lastWorkoutSet,
   onComplete,
+  onUncomplete,
   onIncrementReps,
   onDecrementReps,
   onIncrementWeight,
@@ -53,7 +55,6 @@ export function SetRow({
           label="Reps"
           size="sm"
         />
-        {/* Override onPointerDown via the +/- callbacks */}
         {lastWorkoutSet && !set.isCompleted && (
           <span className="text-[10px] text-muted-foreground mt-0.5">
             prev: {lastWorkoutSet.reps}
@@ -80,7 +81,7 @@ export function SetRow({
         )}
       </div>
 
-      {/* Complete button */}
+      {/* Complete/Uncomplete button */}
       <Button
         type="button"
         variant={set.isCompleted ? "default" : "outline"}
@@ -89,8 +90,7 @@ export function SetRow({
           "h-10 w-10 rounded-full shrink-0 touch-manipulation",
           set.isCompleted && "bg-green-600 hover:bg-green-700 text-white"
         )}
-        onClick={onComplete}
-        disabled={set.isCompleted}
+        onClick={set.isCompleted ? onUncomplete : onComplete}
       >
         <Check className="h-5 w-5" />
       </Button>
@@ -105,6 +105,7 @@ interface ConnectedSetRowProps {
   set: ActiveSessionSet;
   lastWorkoutSet?: { reps: number; weight: number; weightUnit: string };
   onComplete: () => void;
+  onUncomplete: () => void;
   onIncrementReps: () => void;
   onDecrementReps: () => void;
   onIncrementWeight: () => void;
@@ -117,6 +118,7 @@ export function ConnectedSetRow({
   set,
   lastWorkoutSet,
   onComplete,
+  onUncomplete,
   onIncrementReps,
   onDecrementReps,
   onIncrementWeight,
@@ -148,7 +150,6 @@ export function ConnectedSetRow({
             type="button"
             className="h-8 w-8 rounded-full border flex items-center justify-center text-sm font-bold touch-manipulation active:bg-muted"
             onClick={onDecrementReps}
-            disabled={set.isCompleted}
           >
             -
           </button>
@@ -159,7 +160,6 @@ export function ConnectedSetRow({
             type="button"
             className="h-8 w-8 rounded-full border flex items-center justify-center text-sm font-bold touch-manipulation active:bg-muted"
             onClick={onIncrementReps}
-            disabled={set.isCompleted}
           >
             +
           </button>
@@ -181,7 +181,6 @@ export function ConnectedSetRow({
             type="button"
             className="h-8 w-8 rounded-full border flex items-center justify-center text-sm font-bold touch-manipulation active:bg-muted"
             onClick={onDecrementWeight}
-            disabled={set.isCompleted}
           >
             -
           </button>
@@ -194,7 +193,6 @@ export function ConnectedSetRow({
             type="button"
             className="h-8 w-8 rounded-full border flex items-center justify-center text-sm font-bold touch-manipulation active:bg-muted"
             onClick={onIncrementWeight}
-            disabled={set.isCompleted}
           >
             +
           </button>
@@ -206,7 +204,7 @@ export function ConnectedSetRow({
         )}
       </div>
 
-      {/* Complete button */}
+      {/* Complete/Uncomplete button */}
       <Button
         type="button"
         variant={set.isCompleted ? "default" : "outline"}
@@ -215,8 +213,7 @@ export function ConnectedSetRow({
           "h-10 w-10 rounded-full shrink-0 touch-manipulation",
           set.isCompleted && "bg-green-600 hover:bg-green-700 text-white"
         )}
-        onClick={onComplete}
-        disabled={set.isCompleted}
+        onClick={set.isCompleted ? onUncomplete : onComplete}
       >
         <Check className="h-5 w-5" />
       </Button>

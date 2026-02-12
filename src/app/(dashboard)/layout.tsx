@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { BottomNav } from "@/components/layout/bottom-nav";
 
 export default function DashboardLayout({
   children,
@@ -12,7 +13,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const isActiveWorkout = pathname === "/workout/active";
 
-  // Full-screen mode for active workout — no sidebar or header
+  // Full-screen mode for active workout — no sidebar, header, or bottom nav
   if (isActiveWorkout) {
     return <>{children}</>;
   }
@@ -22,8 +23,9 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="md:pl-64">
         <Header />
-        <main className="p-4 md:p-6">{children}</main>
+        <main className="p-4 md:p-6 pb-20 md:pb-6">{children}</main>
       </div>
+      <BottomNav />
     </div>
   );
 }
