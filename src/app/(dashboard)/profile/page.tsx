@@ -5,8 +5,6 @@ import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { User, Save, Mail, AtSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useProfile, useUpdateProfile } from "@/hooks/use-profile";
 
 const profileSchema = z.object({
   fullName: z.string().max(100).optional(),
@@ -42,45 +41,8 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function ProfilePage() {
   const { data: session } = useSession();
-  const queryClient = useQueryClient();
-
-  const { data, isLoading } = useQuery({
-    queryKey: ["user-profile"],
-    queryFn: async () => {
-      const res = await fetch("/api/users/me");
-      if (!res.ok) throw new Error("Failed to fetch profile");
-      return res.json();
-    },
-  });
-
-  const updateProfile = useMutation({
-    mutationFn: async (data: ProfileFormData) => {
-      const res = await fetch("/api/users/me", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullName: data.fullName,
-          heightUnit: data.heightUnit,
-          weightUnit: data.weightUnit,
-          age: data.age ? parseInt(data.age, 10) : null,
-          height: data.height ? parseFloat(data.height) : null,
-          weight: data.weight ? parseFloat(data.weight) : null,
-        }),
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to update profile");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["user-profile"] });
-      toast.success("Profile updated successfully!");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
+  const { data, isLoading } = useProfile();
+  const updateProfile = useUpdateProfile();
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -108,7 +70,14 @@ export default function ProfilePage() {
   }, [data, form]);
 
   const onSubmit = async (formData: ProfileFormData) => {
-    await updateProfile.mutateAsync(formData);
+    await updateProfile.mutateAsync({
+      fullName: formData.fullName,
+      heightUnit: formData.heightUnit,
+      weightUnit: formData.weightUnit,
+      age: formData.age ? parseInt(formData.age, 10) : null,
+      height: formData.height ? parseFloat(formData.height) : null,
+      weight: formData.weight ? parseFloat(formData.weight) : null,
+    });
   };
 
   if (isLoading) {

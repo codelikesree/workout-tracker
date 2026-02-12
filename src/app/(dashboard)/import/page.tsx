@@ -21,11 +21,12 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { parseWorkoutText, formatExampleImport } from "@/lib/utils/import-parser";
+import { useImportWorkouts } from "@/hooks/use-import-workouts";
 
 export default function ImportPage() {
   const router = useRouter();
+  const importWorkouts = useImportWorkouts();
   const [text, setText] = useState("");
-  const [isImporting, setIsImporting] = useState(false);
   const [preview, setPreview] = useState<ReturnType<typeof parseWorkoutText>>(
     null
   );
@@ -45,21 +46,8 @@ export default function ImportPage() {
       return;
     }
 
-    setIsImporting(true);
-
     try {
-      const response = await fetch("/api/workouts/import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        toast.error(result.error || "Failed to import workout");
-        return;
-      }
+      const result = await importWorkouts.mutateAsync(text);
 
       const count = result.workouts.length;
       toast.success(
@@ -73,10 +61,10 @@ export default function ImportPage() {
       } else {
         router.push("/workouts");
       }
-    } catch {
-      toast.error("Something went wrong. Please try again.");
-    } finally {
-      setIsImporting(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong. Please try again."
+      );
     }
   };
 
@@ -262,9 +250,9 @@ export default function ImportPage() {
       <div className="flex gap-4">
         <Button
           onClick={handleImport}
-          disabled={!preview || preview.length === 0 || isImporting}
+          disabled={!preview || preview.length === 0 || importWorkouts.isPending}
         >
-          {isImporting
+          {importWorkouts.isPending
             ? "Importing..."
             : preview && preview.length > 1
               ? `Import ${preview.length} Workouts`

@@ -2,6 +2,13 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { fetchAPI } from "@/lib/api/client";
+import type { CreateWorkoutInput, UpdateWorkoutInput } from "@/lib/validators/workout";
+import type {
+  WorkoutsListResponse,
+  WorkoutResponse,
+  DeleteWorkoutResponse,
+} from "@/lib/types/api";
 
 interface WorkoutFilters {
   startDate?: string;
@@ -14,7 +21,7 @@ interface WorkoutFilters {
 export function useWorkouts(filters?: WorkoutFilters) {
   return useQuery({
     queryKey: ["workouts", filters],
-    queryFn: async () => {
+    queryFn: () => {
       const params = new URLSearchParams();
       if (filters?.startDate) params.set("startDate", filters.startDate);
       if (filters?.endDate) params.set("endDate", filters.endDate);
@@ -22,12 +29,7 @@ export function useWorkouts(filters?: WorkoutFilters) {
       if (filters?.page) params.set("page", filters.page.toString());
       if (filters?.limit) params.set("limit", filters.limit.toString());
 
-      const res = await fetch(`/api/workouts?${params}`);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to fetch workouts");
-      }
-      return res.json();
+      return fetchAPI<WorkoutsListResponse>(`/api/workouts?${params}`);
     },
   });
 }
@@ -35,14 +37,7 @@ export function useWorkouts(filters?: WorkoutFilters) {
 export function useWorkout(id: string) {
   return useQuery({
     queryKey: ["workout", id],
-    queryFn: async () => {
-      const res = await fetch(`/api/workouts/${id}`);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to fetch workout");
-      }
-      return res.json();
-    },
+    queryFn: () => fetchAPI<WorkoutResponse>(`/api/workouts/${id}`),
     enabled: !!id,
   });
 }
@@ -51,18 +46,11 @@ export function useCreateWorkout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: Record<string, unknown>) => {
-      const res = await fetch("/api/workouts", {
+    mutationFn: (data: CreateWorkoutInput) =>
+      fetchAPI<WorkoutResponse>("/api/workouts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to create workout");
-      }
-      return res.json();
-    },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workouts"] });
       toast.success("Workout logged successfully!");
@@ -77,24 +65,11 @@ export function useUpdateWorkout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: Record<string, unknown>;
-    }) => {
-      const res = await fetch(`/api/workouts/${id}`, {
+    mutationFn: ({ id, data }: { id: string; data: UpdateWorkoutInput }) =>
+      fetchAPI<WorkoutResponse>(`/api/workouts/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to update workout");
-      }
-      return res.json();
-    },
+      }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["workouts"] });
       queryClient.invalidateQueries({ queryKey: ["workout", variables.id] });
@@ -110,16 +85,10 @@ export function useDeleteWorkout() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`/api/workouts/${id}`, {
+    mutationFn: (id: string) =>
+      fetchAPI<DeleteWorkoutResponse>(`/api/workouts/${id}`, {
         method: "DELETE",
-      });
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to delete workout");
-      }
-      return res.json();
-    },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workouts"] });
       toast.success("Workout deleted successfully!");

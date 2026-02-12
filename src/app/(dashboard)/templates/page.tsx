@@ -50,9 +50,9 @@ export default function TemplatesPage() {
             <Skeleton key={i} className="h-[200px] rounded-lg" />
           ))}
         </div>
-      ) : data?.templates?.length > 0 ? (
+      ) : (data?.templates?.length ?? 0) > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {data.templates.map((template: Template) => (
+          {data!.templates.map((template: Template) => (
             <TemplateCard key={template._id} template={template} />
           ))}
         </div>

@@ -154,7 +154,7 @@ export function WorkoutForm({ initialData, mode = "create" }: WorkoutFormProps) 
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Template Selection */}
-        {mode === "create" && templatesData?.templates?.length > 0 && (
+        {mode === "create" && (templatesData?.templates?.length ?? 0) > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Use Template</CardTitle>
@@ -165,7 +165,7 @@ export function WorkoutForm({ initialData, mode = "create" }: WorkoutFormProps) 
                   <SelectValue placeholder="Select a template (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  {templatesData.templates.map(
+                  {templatesData!.templates.map(
                     (template: { _id: string; name: string }) => (
                       <SelectItem key={template._id} value={template._id}>
                         {template.name}

@@ -14,3 +14,9 @@ export const WEIGHT_UNITS = [
 
 export type WorkoutType = (typeof WORKOUT_TYPES)[number]["value"];
 export type WeightUnit = (typeof WEIGHT_UNITS)[number]["value"];
+
+// ─── Numeric Constants ──────────────────────────────────────────────
+
+export const DEFAULT_REST_TIME_SECONDS = 90;
+export const DEFAULT_WEIGHT_STEP = 2.5;
+export const RECENT_TEMPLATES_LIMIT = 4;

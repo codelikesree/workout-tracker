@@ -1,20 +1,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { fetchAPI } from "@/lib/api/client";
+import type { LastStatsResponse } from "@/lib/types/api";
 
-export interface LastWorkoutSet {
-  setNumber: number;
-  reps: number;
-  weight: number;
-  weightUnit: string;
-}
+export type { LastStatsSet } from "@/lib/types/api";
 
-export interface LastWorkoutStats {
-  [exerciseName: string]: {
-    date: string;
-    sets: LastWorkoutSet[];
-  };
-}
+export type LastWorkoutStats = LastStatsResponse["stats"];
 
 export function useLastWorkoutStats(exerciseNames: string[]) {
   return useQuery<LastWorkoutStats>({
@@ -23,12 +15,9 @@ export function useLastWorkoutStats(exerciseNames: string[]) {
       const params = new URLSearchParams({
         exercises: exerciseNames.join(","),
       });
-      const res = await fetch(`/api/workouts/last-stats?${params}`);
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to fetch last workout stats");
-      }
-      const data = await res.json();
+      const data = await fetchAPI<LastStatsResponse>(
+        `/api/workouts/last-stats?${params}`
+      );
       return data.stats;
     },
     enabled: exerciseNames.length > 0,

@@ -12,6 +12,7 @@ import {
 import { useActiveSession } from "@/contexts/active-session-context";
 import { useTemplates } from "@/hooks/use-templates";
 import { useStartFromTemplate } from "@/hooks/use-start-from-template";
+import { DEFAULT_REST_TIME_SECONDS } from "@/lib/constants/workout-types";
 import type { StartWorkoutConfig } from "@/lib/types/active-session";
 
 interface StartWorkoutSheetProps {
@@ -36,7 +37,7 @@ export function StartWorkoutSheet({
         {
           name: "",
           sets: [{ targetReps: 10, targetWeight: 0, weightUnit: "kg" }],
-          restTime: 90,
+          restTime: DEFAULT_REST_TIME_SECONDS,
         },
       ],
     };

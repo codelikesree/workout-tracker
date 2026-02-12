@@ -83,9 +83,9 @@ export default function WorkoutsPage() {
             <Skeleton key={i} className="h-[200px] rounded-lg" />
           ))}
         </div>
-      ) : data?.workouts?.length > 0 ? (
+      ) : (data?.workouts?.length ?? 0) > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {data.workouts.map((workout: Workout) => (
+          {data!.workouts.map((workout: Workout) => (
             <WorkoutCard key={workout._id} workout={workout} />
           ))}
         </div>
