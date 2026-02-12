@@ -23,11 +23,11 @@ export async function POST(req: NextRequest) {
 
     const parsed = parseWorkoutText(text);
 
-    if (!parsed) {
+    if (!parsed || parsed.length === 0) {
       return NextResponse.json(
         {
           error:
-            "Could not parse the workout text. Please use the format: Exercise: 3x10 @ 60kg",
+            "No exercises found. Make sure your text contains known exercise names with numbers (e.g., Bench Press 3x10 @ 80kg). Typos are OK — we fuzzy-match against 165+ exercises.",
         },
         { status: 400 }
       );
@@ -35,12 +35,14 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
-    const workout = await WorkoutLog.create({
-      ...parsed,
-      userId,
-    });
+    const workouts = await WorkoutLog.insertMany(
+      parsed.map((w) => ({
+        ...w,
+        userId,
+      }))
+    );
 
-    return NextResponse.json({ workout }, { status: 201 });
+    return NextResponse.json({ workouts }, { status: 201 });
   } catch (error) {
     console.error("Error importing workout:", error);
     return NextResponse.json(
