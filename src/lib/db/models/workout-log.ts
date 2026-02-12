@@ -114,6 +114,7 @@ const WorkoutLogSchema = new Schema<IWorkoutLog>(
 WorkoutLogSchema.index({ userId: 1, date: -1 });
 WorkoutLogSchema.index({ userId: 1, type: 1 });
 WorkoutLogSchema.index({ userId: 1, date: 1, type: 1 });
+WorkoutLogSchema.index({ userId: 1, "exercises.name": 1, date: -1 });
 
 export const WorkoutLog: Model<IWorkoutLog> =
   mongoose.models.WorkoutLog ||

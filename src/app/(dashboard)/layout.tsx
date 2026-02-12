@@ -1,3 +1,6 @@
+"use client";
+
+import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 
@@ -6,6 +9,14 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const isActiveWorkout = pathname === "/workout/active";
+
+  // Full-screen mode for active workout — no sidebar or header
+  if (isActiveWorkout) {
+    return <>{children}</>;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar />
