@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Dumbbell, BarChart3, Calendar, FileText } from "lucide-react";
+import { StartWorkoutCTA } from "@/components/workout/start-workout-cta";
 
 export default function HomePage() {
   return (
@@ -33,11 +34,9 @@ export default function HomePage() {
           fitness goals with our comprehensive workout tracking app.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" asChild>
-            <Link href="/signup">Start Free Today</Link>
-          </Button>
+          <StartWorkoutCTA />
           <Button size="lg" variant="outline" asChild>
-            <Link href="/login">I already have an account</Link>
+            <Link href="/signup">Create Account</Link>
           </Button>
         </div>
       </section>

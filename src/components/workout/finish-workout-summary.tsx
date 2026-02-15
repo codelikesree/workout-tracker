@@ -1,18 +1,36 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { ArrowLeft, Save, Dumbbell, Clock, Layers, Weight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { useActiveSession } from "@/contexts/active-session-context";
-import { useState } from "react";
+import { AuthPromptDialog, PENDING_SAVE_KEY } from "./auth-prompt-dialog";
 
 export function FinishWorkoutSummary() {
+  const { status: authStatus } = useSession();
   const { session, saveWorkout, resumeWorkout, updateWorkoutName } =
     useActiveSession();
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const autoSaveTriggered = useRef(false);
+
+  // Auto-save when returning from auth with a pending save
+  useEffect(() => {
+    if (
+      authStatus === "authenticated" &&
+      !autoSaveTriggered.current &&
+      localStorage.getItem(PENDING_SAVE_KEY)
+    ) {
+      autoSaveTriggered.current = true;
+      localStorage.removeItem(PENDING_SAVE_KEY);
+      saveWorkout();
+    }
+  }, [authStatus, saveWorkout]);
 
   if (!session) return null;
 
@@ -38,6 +56,10 @@ export function FinishWorkoutSummary() {
     hours > 0 ? `${hours}h ${minutes}m` : `${minutes} min`;
 
   const handleSave = async () => {
+    if (authStatus !== "authenticated") {
+      setShowAuthPrompt(true);
+      return;
+    }
     setIsSaving(true);
     await saveWorkout();
     setIsSaving(false);
@@ -175,6 +197,11 @@ export function FinishWorkoutSummary() {
           </Button>
         </div>
       </div>
+
+      <AuthPromptDialog
+        open={showAuthPrompt}
+        onOpenChange={setShowAuthPrompt}
+      />
     </div>
   );
 }

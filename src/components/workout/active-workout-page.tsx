@@ -2,9 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Plus, X, Flag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useActiveSession } from "@/contexts/active-session-context";
+import { DEFAULT_REST_TIME_SECONDS } from "@/lib/constants/workout-types";
+import type { StartWorkoutConfig } from "@/lib/types/active-session";
 import { ExerciseCardActive } from "./exercise-card-active";
 import { RestTimerInline } from "./rest-timer-inline";
 import { WorkoutTimer } from "./workout-timer";
@@ -14,9 +17,11 @@ import { ExerciseCombobox } from "@/components/ui/exercise-combobox";
 
 export function ActiveWorkoutPage() {
   const router = useRouter();
+  const { status: authStatus } = useSession();
   const {
     session,
     isActive,
+    startWorkout,
     finishWorkout,
     discardWorkout,
     addExercise,
@@ -27,12 +32,28 @@ export function ActiveWorkoutPage() {
   const [newExerciseName, setNewExerciseName] = useState("");
   const exerciseListRef = useRef<HTMLDivElement>(null);
 
-  // Redirect if no session
+  // Handle no session: auto-start for guests, redirect for authenticated users
   useEffect(() => {
+    if (authStatus === "loading") return;
     if (!isActive && !session) {
-      router.replace("/dashboard");
+      if (authStatus === "authenticated") {
+        router.replace("/dashboard");
+      } else {
+        const config: StartWorkoutConfig = {
+          workoutName: "Workout",
+          type: "strength",
+          exercises: [
+            {
+              name: "",
+              sets: [{ targetReps: 10, targetWeight: 0, weightUnit: "kg" }],
+              restTime: DEFAULT_REST_TIME_SECONDS,
+            },
+          ],
+        };
+        startWorkout(config);
+      }
     }
-  }, [isActive, session, router]);
+  }, [isActive, session, authStatus, router, startWorkout]);
 
   // Warn on page close
   useEffect(() => {
@@ -62,7 +83,7 @@ export function ActiveWorkoutPage() {
 
   const handleDiscard = () => {
     discardWorkout();
-    router.replace("/dashboard");
+    router.replace(authStatus === "authenticated" ? "/dashboard" : "/");
   };
 
   const completedSets = session.exercises.reduce(
