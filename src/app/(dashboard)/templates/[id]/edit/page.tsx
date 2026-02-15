@@ -29,21 +29,21 @@ export default function EditTemplatePage({
     return (
       <div className="max-w-3xl mx-auto text-center py-12">
         <p className="text-muted-foreground">Template not found</p>
-        <Button asChild className="mt-4">
-          <Link href="/templates">Back to Templates</Link>
-        </Button>
+        <Link href="/templates">
+          <Button className="mt-4">Back to Templates</Button>
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <Button variant="ghost" asChild>
-        <Link href={`/templates/${id}`}>
+      <Link href={`/templates/${id}`}>
+        <Button variant="ghost">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Template
-        </Link>
-      </Button>
+        </Button>
+      </Link>
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Edit Template</h1>
         <p className="text-muted-foreground">Update your workout template.</p>

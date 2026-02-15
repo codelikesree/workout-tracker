@@ -29,21 +29,21 @@ export default function EditWorkoutPage({
     return (
       <div className="max-w-3xl mx-auto text-center py-12">
         <p className="text-muted-foreground">Workout not found</p>
-        <Button asChild className="mt-4">
-          <Link href="/workouts">Back to Workouts</Link>
-        </Button>
+        <Link href="/workouts">
+          <Button className="mt-4">Back to Workouts</Button>
+        </Link>
       </div>
     );
   }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
-      <Button variant="ghost" asChild>
-        <Link href={`/workouts/${id}`}>
+      <Link href={`/workouts/${id}`}>
+        <Button variant="ghost">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Workout
-        </Link>
-      </Button>
+        </Button>
+      </Link>
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Edit Workout</h1>
         <p className="text-muted-foreground">

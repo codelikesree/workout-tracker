@@ -27,7 +27,11 @@ export function BottomNav() {
 
   return (
     <>
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 pb-[env(safe-area-inset-bottom)]">
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 pb-[env(safe-area-inset-bottom)] shadow-lg"
+        aria-label="Primary navigation"
+        role="navigation"
+      >
         <div className="flex items-center justify-around h-16">
           {/* First two tabs */}
           {tabs.slice(0, 2).map((tab) => {
@@ -38,28 +42,31 @@ export function BottomNav() {
                 key={tab.href}
                 href={tab.href}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 flex-1 h-full touch-manipulation transition-colors",
+                  "flex flex-col items-center justify-center gap-1 flex-1 h-full touch-target transition-all active:scale-95",
                   isActive
-                    ? "text-primary"
-                    : "text-muted-foreground"
+                    ? "text-primary font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
+                aria-current={isActive ? "page" : undefined}
+                aria-label={tab.title}
               >
-                <tab.icon className="h-5 w-5" />
+                <tab.icon className="h-5 w-5" aria-hidden="true" />
                 <span className="text-[10px] font-medium">{tab.title}</span>
               </Link>
             );
           })}
 
-          {/* Center Start button */}
+          {/* Center Start button - elevated primary action */}
           <button
             type="button"
-            className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full touch-manipulation"
+            className="flex flex-col items-center justify-center gap-1 flex-1 h-full touch-target transition-all active:scale-95"
             onClick={() => setShowStartSheet(true)}
+            aria-label="Start new workout"
           >
-            <div className="h-11 w-11 rounded-full bg-primary flex items-center justify-center -mt-3 shadow-lg">
-              <Plus className="h-6 w-6 text-primary-foreground" />
+            <div className="h-12 w-12 rounded-full bg-primary flex items-center justify-center -mt-4 shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-100 ring-4 ring-background">
+              <Plus className="h-6 w-6 text-primary-foreground" aria-hidden="true" />
             </div>
-            <span className="text-[10px] font-medium text-primary">Start</span>
+            <span className="text-[10px] font-semibold text-primary">Start</span>
           </button>
 
           {/* Last two tabs */}
@@ -71,13 +78,15 @@ export function BottomNav() {
                 key={tab.href}
                 href={tab.href}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-0.5 flex-1 h-full touch-manipulation transition-colors",
+                  "flex flex-col items-center justify-center gap-1 flex-1 h-full touch-target transition-all active:scale-95",
                   isActive
-                    ? "text-primary"
-                    : "text-muted-foreground"
+                    ? "text-primary font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
+                aria-current={isActive ? "page" : undefined}
+                aria-label={tab.title}
               >
-                <tab.icon className="h-5 w-5" />
+                <tab.icon className="h-5 w-5" aria-hidden="true" />
                 <span className="text-[10px] font-medium">{tab.title}</span>
               </Link>
             );

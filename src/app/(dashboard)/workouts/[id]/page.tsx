@@ -57,9 +57,9 @@ export default function WorkoutDetailPage({
     return (
       <div className="max-w-3xl mx-auto text-center py-12">
         <p className="text-muted-foreground">Workout not found</p>
-        <Button asChild className="mt-4">
-          <Link href="/workouts">Back to Workouts</Link>
-        </Button>
+        <Link href="/workouts">
+          <Button className="mt-4">Back to Workouts</Button>
+        </Link>
       </div>
     );
   }
@@ -76,19 +76,19 @@ export default function WorkoutDetailPage({
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" asChild>
-          <Link href="/workouts">
+        <Link href="/workouts">
+          <Button variant="ghost">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Workouts
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link href={`/workouts/${workout._id}/edit`}>
+          <Link href={`/workouts/${workout._id}/edit`}>
+            <Button variant="outline">
               <Edit className="mr-2 h-4 w-4" />
               Edit
-            </Link>
-          </Button>
+            </Button>
+          </Link>
           <Button
             variant="destructive"
             onClick={() => setShowDeleteDialog(true)}

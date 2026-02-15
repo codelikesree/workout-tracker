@@ -14,12 +14,12 @@ export default function HomePage() {
             <span className="text-xl font-bold">Workout Tracker</span>
           </Link>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Sign in</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">Get Started</Link>
-            </Button>
+            <Link href="/login">
+              <Button variant="ghost">Sign in</Button>
+            </Link>
+            <Link href="/signup">
+              <Button>Get Started</Button>
+            </Link>
           </div>
         </nav>
       </header>
@@ -35,9 +35,9 @@ export default function HomePage() {
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <StartWorkoutCTA />
-          <Button size="lg" variant="outline" asChild>
-            <Link href="/signup">Create Account</Link>
-          </Button>
+          <Link href="/signup">
+            <Button size="lg" variant="outline">Create Account</Button>
+          </Link>
         </div>
       </section>
 
@@ -95,9 +95,9 @@ export default function HomePage() {
             Join thousands of fitness enthusiasts tracking their workouts and
             achieving their goals.
           </p>
-          <Button size="lg" asChild>
-            <Link href="/signup">Create Free Account</Link>
-          </Button>
+          <Link href="/signup">
+            <Button size="lg">Create Free Account</Button>
+          </Link>
         </div>
       </section>
 

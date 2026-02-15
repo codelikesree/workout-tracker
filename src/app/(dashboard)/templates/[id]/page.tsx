@@ -55,9 +55,9 @@ export default function TemplateDetailPage({
     return (
       <div className="max-w-3xl mx-auto text-center py-12">
         <p className="text-muted-foreground">Template not found</p>
-        <Button asChild className="mt-4">
-          <Link href="/templates">Back to Templates</Link>
-        </Button>
+        <Link href="/templates">
+          <Button className="mt-4">Back to Templates</Button>
+        </Link>
       </div>
     );
   }
@@ -74,12 +74,12 @@ export default function TemplateDetailPage({
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <Button variant="ghost" asChild>
-          <Link href="/templates">
+        <Link href="/templates">
+          <Button variant="ghost">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Templates
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <div className="flex gap-2">
           <Button
             onClick={() => startFromTemplate(template._id)}
@@ -88,12 +88,12 @@ export default function TemplateDetailPage({
             <Dumbbell className="mr-2 h-4 w-4" />
             {loadingTemplateId === template._id ? "Starting..." : "Start Workout"}
           </Button>
-          <Button variant="outline" asChild>
-            <Link href={`/templates/${template._id}/edit`}>
+          <Link href={`/templates/${template._id}/edit`}>
+            <Button variant="outline">
               <Edit className="mr-2 h-4 w-4" />
               Edit
-            </Link>
-          </Button>
+            </Button>
+          </Link>
           <Button
             variant="destructive"
             onClick={() => setShowDeleteDialog(true)}

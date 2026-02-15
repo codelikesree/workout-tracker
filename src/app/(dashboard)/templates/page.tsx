@@ -35,12 +35,12 @@ export default function TemplatesPage() {
             Create and manage your workout templates
           </p>
         </div>
-        <Button asChild>
-          <Link href="/templates/new">
+        <Link href="/templates/new">
+          <Button>
             <Plus className="mr-2 h-4 w-4" />
             Create Template
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       </div>
 
       {/* Templates List */}
@@ -63,12 +63,12 @@ export default function TemplatesPage() {
           <p className="text-muted-foreground mb-4">
             Create a template to quickly log your favorite workout routines.
           </p>
-          <Button asChild>
-            <Link href="/templates/new">
+          <Link href="/templates/new">
+            <Button>
               <Plus className="mr-2 h-4 w-4" />
               Create Your First Template
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
       )}
     </div>
