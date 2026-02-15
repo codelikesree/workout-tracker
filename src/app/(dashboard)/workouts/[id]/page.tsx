@@ -20,6 +20,7 @@ import {
 import { useState } from "react";
 import { useWorkout, useDeleteWorkout } from "@/hooks/use-workouts";
 import { WORKOUT_TYPES } from "@/lib/constants/workout-types";
+import { WorkoutSchema } from "@/components/seo/workout-schema";
 
 interface ExerciseSet {
   setNumber: number;
@@ -191,6 +192,16 @@ export default function WorkoutDetailPage({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <WorkoutSchema
+        workoutId={workout._id}
+        name={workout.workoutName}
+        description={workout.notes}
+        type={typeLabel}
+        date={workout.date}
+        duration={workout.duration}
+        exercises={workout.exercises}
+      />
     </div>
   );
 }

@@ -1,5 +1,13 @@
+import { Metadata } from "next";
 import { Dumbbell } from "lucide-react";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function AuthLayout({
   children,

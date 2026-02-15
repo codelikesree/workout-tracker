@@ -1,9 +1,70 @@
 import Link from "next/link";
+import { Metadata } from "next";
+import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { Dumbbell, BarChart3, Calendar, FileText } from "lucide-react";
 import { StartWorkoutCTA } from "@/components/workout/start-workout-cta";
+import { generatePageMetadata, siteConfig } from "@/lib/seo-config";
+
+export const metadata: Metadata = generatePageMetadata({
+  title: "Track Your Fitness Journey | Free Workout & Exercise Logger",
+  description: "Track workouts, create custom templates, analyze your fitness progress with detailed analytics. Log exercises, sets, reps, and weights with our free workout tracker app.",
+  url: "/",
+  keywords: [
+    "workout tracker",
+    "fitness tracker",
+    "exercise log",
+    "gym tracker",
+    "workout planner",
+    "fitness app",
+    "free workout tracker",
+    "exercise tracker app",
+    "workout templates",
+    "fitness analytics",
+    "progressive overload tracker",
+    "strength training log",
+  ],
+});
 
 export default function HomePage() {
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: [
+      {
+        "@type": "Question",
+        name: "What is Workout Tracker?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Workout Tracker is a comprehensive fitness application that helps you log workouts, create custom templates, track your exercise progress, and analyze your fitness journey with detailed analytics and charts.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "How do I track my workouts?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Simply start a workout session, add your exercises, and log sets, reps, and weights as you complete them. You can also create templates from your favorite routines to log workouts faster.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Is the workout tracker free?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Yes, Workout Tracker is free to use. Create an account and start tracking your fitness journey immediately with no subscription required.",
+        },
+      },
+      {
+        "@type": "Question",
+        name: "Can I create custom workout templates?",
+        acceptedAnswer: {
+          "@type": "Answer",
+          text: "Absolutely! Create unlimited custom workout templates with your favorite exercises, target sets, reps, and weights. Use these templates to quickly log workouts without entering exercises manually each time.",
+        },
+      },
+    ],
+  };
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
       {/* Header */}
@@ -107,6 +168,12 @@ export default function HomePage() {
           <p>&copy; 2024 Workout Tracker. All rights reserved.</p>
         </div>
       </footer>
+
+      <Script
+        id="faq-schema"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
     </div>
   );
 }
