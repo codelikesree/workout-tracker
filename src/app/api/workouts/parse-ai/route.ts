@@ -1,29 +1,24 @@
-import { streamText } from "ai";
+import { generateText } from "ai";
 import { google } from "@ai-sdk/google";
 import { EXERCISES } from "@/lib/constants/exercises";
 
-const SYSTEM_PROMPT = `You are a workout data parser. Parse workout text in ANY format and extract structured workout data.
+const SYSTEM_PROMPT = `You are a workout data parser. Extract ALL workouts from the text and return ONLY valid JSON.
 
-EXERCISE NAMES (use EXACTLY these names):
+EXERCISE NAMES - use fuzzy matching to these exact names:
 ${EXERCISES.map((ex) => ex.name).join(", ")}
 
-OUTPUT FORMAT (JSON only, no markdown):
+OUTPUT JSON SCHEMA:
 {
   "workouts": [
     {
-      "workoutName": "string (default: 'Imported Workout' or '<first exercise> Day')",
-      "date": "YYYY-MM-DD (ISO date string)",
+      "workoutName": "Chest Day",
+      "date": "2025-06-08",
       "type": "strength",
       "exercises": [
         {
-          "name": "string (MUST match one of the exercise names above, use fuzzy matching)",
+          "name": "Bench Press",
           "sets": [
-            {
-              "setNumber": 1,
-              "reps": 10,
-              "weight": 60,
-              "weightUnit": "kg" or "lbs"
-            }
+            {"setNumber": 1, "reps": 10, "weight": 60, "weightUnit": "kg"}
           ]
         }
       ]
@@ -32,16 +27,11 @@ OUTPUT FORMAT (JSON only, no markdown):
 }
 
 RULES:
-1. Extract ALL workouts from the text (can span multiple days/weeks/months)
-2. Recognize ANY format: chat logs, WhatsApp messages, notes, structured lists, etc.
-3. Detect dates in ANY format (ISO, DD/MM/YY, "Jan 15", "yesterday", etc.)
-4. If no date found, use today's date
-5. Match exercise names fuzzily to the official list (e.g., "bench" → "Bench Press", "lat pull" → "Lat Pulldown")
-6. Extract sets, reps, and weight from patterns like: "3x10 @ 60kg", "10 reps 60kg", "3 sets 10 reps", "60kg x 10", etc.
-7. Infer weight unit from context (kg/lbs) or default to "kg"
-8. If multiple entries for the same exercise on the same day, combine them (increment setNumber)
-9. Ignore noise: system messages, media references, emojis, irrelevant chat
-10. Return valid JSON only, no markdown code blocks`;
+- Extract ALL workout dates from text (DD/MM/YY, "June 8", etc)
+- Match exercises to names above (e.g., "BP" → "Bench Press", "Lat pull" → "Lat Pulldown")
+- Parse sets: "3x10 @ 60kg" = 3 sets, "10*3" = 3 sets, etc.
+- Ignore noise: timestamps, emojis, stickers, system messages
+- Return ONLY JSON, no markdown`;
 
 export async function POST(request: Request) {
   try {
@@ -54,15 +44,35 @@ export async function POST(request: Request) {
       });
     }
 
-    const result = streamText({
+    // Generate JSON response from AI
+    const result = await generateText({
       model: google("gemini-2.5-flash"),
       system: SYSTEM_PROMPT,
-      prompt: `Parse this workout text and return ONLY valid JSON (no markdown, no code blocks):\n\n${text}`,
-      temperature: 0.1,
+      prompt: `Extract all workouts from this text and return ONLY the JSON object with no extra text:\n\n${text}`,
+      temperature: 0,
     });
 
-    // Convert to ReadableStream that the client can consume
-    return result.toTextStreamResponse();
+    // Clean and parse response
+    let jsonText = result.text.trim();
+
+    // Remove markdown code blocks if present
+    if (jsonText.startsWith("```")) {
+      jsonText = jsonText
+        .replace(/^```(?:json)?\s*\n/, "")
+        .replace(/\n```\s*$/, "")
+        .trim();
+    }
+
+    // Parse and validate JSON
+    const parsed = JSON.parse(jsonText);
+
+    if (!parsed.workouts || !Array.isArray(parsed.workouts)) {
+      throw new Error("AI returned invalid structure - missing workouts array");
+    }
+
+    return new Response(JSON.stringify(parsed), {
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error: unknown) {
     // Handle rate limit errors
     if (
@@ -97,6 +107,20 @@ export async function POST(request: Request) {
     }
 
     console.error("AI parsing error:", error);
+
+    // Better error message for JSON parsing errors
+    if (error instanceof SyntaxError && error.message.includes("JSON")) {
+      return new Response(
+        JSON.stringify({
+          error: "AI returned invalid JSON. The data might be too large or complex. Try with less data.",
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+    }
+
     return new Response(
       JSON.stringify({
         error: "Failed to parse workout data. Please try again.",

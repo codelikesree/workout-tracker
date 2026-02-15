@@ -67,7 +67,6 @@ export default function ImportPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
       });
-      console.log(response);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         if (response.status === 429) {
@@ -79,29 +78,8 @@ export default function ImportPage() {
         throw new Error(errorData.error || "Failed to parse workout data");
       }
 
-      // Read the streamed response
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let accumulatedText = "";
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, { stream: true });
-          accumulatedText += chunk;
-        }
-      }
-
-      // Clean up markdown code blocks and parse JSON
-      const jsonContent = accumulatedText
-        .replace(/```json\s*/g, "")
-        .replace(/```\s*/g, "")
-        .trim();
-
-      // Parse the JSON
-      const parsed: ParseResponse = JSON.parse(jsonContent);
+      // Parse the instant JSON response from AI
+      const parsed: ParseResponse = await response.json();
 
       if (!parsed.workouts || parsed.workouts.length === 0) {
         throw new Error(
