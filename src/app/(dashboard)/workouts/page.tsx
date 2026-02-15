@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Dumbbell, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,10 +36,17 @@ interface Workout {
 
 export default function WorkoutsPage() {
   const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
   const [showStartSheet, setShowStartSheet] = useState(false);
   const { data, isLoading } = useWorkouts({
     type: typeFilter === "all" ? undefined : typeFilter,
+    page,
   });
+
+  // Reset to page 1 when filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [typeFilter]);
 
   return (
     <div className="space-y-6">
@@ -109,9 +116,7 @@ export default function WorkoutsPage() {
           <Button
             variant="outline"
             disabled={data.pagination.page === 1}
-            onClick={() => {
-              /* Handle pagination */
-            }}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
           >
             Previous
           </Button>
@@ -121,9 +126,9 @@ export default function WorkoutsPage() {
           <Button
             variant="outline"
             disabled={data.pagination.page === data.pagination.totalPages}
-            onClick={() => {
-              /* Handle pagination */
-            }}
+            onClick={() =>
+              setPage((p) => Math.min(data.pagination.totalPages, p + 1))
+            }
           >
             Next
           </Button>
