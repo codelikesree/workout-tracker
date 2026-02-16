@@ -157,6 +157,49 @@ export interface AnalyticsResponse {
   };
 }
 
+export interface VolumeMetrics {
+  totalVolume: number;
+  volumeUnit: "kg" | "lbs";
+  volumeTrend: number; // percentage vs previous period
+  weeklyVolumeData: Array<{
+    weekLabel: string;
+    weekStart: string;
+    weekEnd: string;
+    volume: number;
+  }>;
+}
+
+export interface PersonalRecord {
+  exerciseName: string;
+  weight: number;
+  weightUnit: "kg" | "lbs";
+  reps: number;
+  date: string;
+  isNewPR: boolean;
+}
+
+export interface BodyPartBalance {
+  bodyPart: string;
+  volume: number;
+  percentage: number;
+  isUnderworked: boolean;
+}
+
+export interface ProgressionData {
+  exerciseName: string;
+  volumeIncrease: number;
+  previousVolume: number;
+  currentVolume: number;
+}
+
+export interface EnhancedAnalyticsResponse extends AnalyticsResponse {
+  volumeMetrics: VolumeMetrics;
+  personalRecords: PersonalRecord[];
+  bodyPartBalance: BodyPartBalance[];
+  topProgressions: ProgressionData[];
+  recommendations: string[];
+}
+
 // ─── User Profile ────────────────────────────────────────────────────
 
 export interface UserProfileResponse {

@@ -12,6 +12,7 @@
   "dependencies": {
     "@ai-sdk/google": "^3.0.29",
     "@hookform/resolvers": "^5.2.2",
+    "@radix-ui/react-progress": "^1.1.8",
     "@tanstack/react-query": "^5.90.20",
     "ai": "^6.0.86",
     "bcryptjs": "^3.0.3",
