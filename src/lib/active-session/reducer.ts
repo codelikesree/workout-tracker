@@ -45,6 +45,7 @@ export type SessionAction =
   | { type: "REMOVE_SET"; exerciseIndex: number; setIndex: number }
   | { type: "ADD_EXERCISE"; name: string }
   | { type: "REMOVE_EXERCISE"; exerciseIndex: number }
+  | { type: "UPDATE_EXERCISE_NAME"; exerciseIndex: number; name: string }
   | {
       type: "SET_LAST_WORKOUT_DATA";
       exerciseIndex: number;
@@ -354,6 +355,16 @@ export function sessionReducer(
         exercises.length - 1
       );
       return { ...state, exercises, currentExerciseIndex };
+    }
+
+    case "UPDATE_EXERCISE_NAME": {
+      if (!state) return null;
+      const exercises = [...state.exercises];
+      exercises[action.exerciseIndex] = {
+        ...exercises[action.exerciseIndex],
+        name: action.name,
+      };
+      return { ...state, exercises };
     }
 
     case "SET_LAST_WORKOUT_DATA": {

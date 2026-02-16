@@ -52,6 +52,7 @@ interface ActiveSessionContextValue {
   // Exercise operations
   addExercise: (name: string) => void;
   removeExercise: (exerciseIndex: number) => void;
+  updateExerciseName: (exerciseIndex: number, name: string) => void;
 
   // Rest timer
   skipRest: () => void;
@@ -245,6 +246,13 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "REMOVE_EXERCISE", exerciseIndex });
   }, []);
 
+  const updateExerciseName = useCallback(
+    (exerciseIndex: number, name: string) => {
+      dispatch({ type: "UPDATE_EXERCISE_NAME", exerciseIndex, name });
+    },
+    []
+  );
+
   const skipRest = useCallback(() => {
     dispatch({ type: "SKIP_REST" });
   }, []);
@@ -307,6 +315,7 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
     removeSet,
     addExercise,
     removeExercise,
+    updateExerciseName,
     skipRest,
     extendRest,
     incrementReps,
