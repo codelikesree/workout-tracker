@@ -96,7 +96,7 @@ export function ActiveWorkoutPage() {
   );
 
   return (
-    <div className="h-dvh bg-background flex flex-col overflow-hidden">
+    <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Top bar */}
       <div className="shrink-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-4 py-3">
         <div className="flex items-center justify-between">
@@ -139,7 +139,14 @@ export function ActiveWorkoutPage() {
       </div>
 
       {/* Exercise list */}
-      <div ref={exerciseListRef} className="flex-1 overflow-y-auto overscroll-none p-4 space-y-4">
+      <div
+        ref={exerciseListRef}
+        className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4"
+        style={{
+          WebkitOverflowScrolling: 'touch',
+          paddingBottom: 'max(2rem, env(safe-area-inset-bottom))'
+        }}
+      >
         {session.exercises.map((exercise, exerciseIndex) => (
           <ExerciseCardActive
             key={exercise.id}
