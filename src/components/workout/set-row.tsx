@@ -142,7 +142,7 @@ export function ConnectedSetRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-2 sm:gap-3 py-4 px-3 sm:px-4 rounded-lg transition-all duration-200",
+        "flex items-center gap-1.5 sm:gap-3 py-3 px-2 sm:px-4 rounded-lg transition-all duration-200",
         set.isCompleted
           ? "bg-success/10 border border-success/20 dark:bg-success/15"
           : "bg-muted/30 border border-transparent"
@@ -151,10 +151,10 @@ export function ConnectedSetRow({
       aria-label={`Set ${setIndex + 1}${set.isCompleted ? " - completed" : ""}`}
     >
       {/* Set number with visual indicator */}
-      <div className="w-8 text-center shrink-0">
+      <div className="w-6 sm:w-8 text-center shrink-0">
         <span
           className={cn(
-            "text-sm font-bold",
+            "text-xs sm:text-sm font-bold",
             set.isCompleted ? "text-success" : "text-muted-foreground"
           )}
         >
@@ -165,33 +165,33 @@ export function ConnectedSetRow({
         )}
       </div>
 
-      {/* Reps stepper - Touch-friendly 44px buttons */}
-      <div className="flex-1 flex flex-col items-center min-w-0">
-        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">
+      {/* Reps stepper - Touch-friendly buttons */}
+      <div className="flex-1 flex flex-col items-center">
+        <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-0.5 sm:mb-1">
           Reps
         </span>
         <div
-          className="flex items-center gap-1"
+          className="flex items-center gap-0.5 sm:gap-1"
           role="group"
           aria-label="Reps"
         >
           <button
             type="button"
-            className="h-11 w-11 rounded-full border-2 border-input flex items-center justify-center text-base font-bold touch-target-lg transition-all active:scale-95 active:bg-muted hover:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="h-9 w-9 sm:h-11 sm:w-11 rounded-full border-2 border-input flex items-center justify-center text-sm sm:text-base font-bold transition-all active:scale-95 active:bg-muted hover:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             onClick={onDecrementReps}
             aria-label="Decrease reps"
           >
             −
           </button>
           <span
-            className="text-xl font-bold tabular-nums min-w-[2.5ch] text-center"
+            className="text-lg sm:text-xl font-bold tabular-nums min-w-[2ch] sm:min-w-[2.5ch] text-center px-0.5 sm:px-1"
             aria-live="polite"
           >
             {set.actualReps}
           </span>
           <button
             type="button"
-            className="h-11 w-11 rounded-full border-2 border-input flex items-center justify-center text-base font-bold touch-target-lg transition-all active:scale-95 active:bg-muted hover:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="h-9 w-9 sm:h-11 sm:w-11 rounded-full border-2 border-input flex items-center justify-center text-sm sm:text-base font-bold transition-all active:scale-95 active:bg-muted hover:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             onClick={onIncrementReps}
             aria-label="Increase reps"
           >
@@ -199,32 +199,32 @@ export function ConnectedSetRow({
           </button>
         </div>
         {lastWorkoutSet && !set.isCompleted && (
-          <span className="text-[10px] text-muted-foreground mt-1">
+          <span className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 sm:mt-1">
             prev: {lastWorkoutSet.reps}
           </span>
         )}
       </div>
 
-      {/* Weight stepper - Touch-friendly 44px buttons */}
-      <div className="flex-1 flex flex-col items-center min-w-0">
-        <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-1">
+      {/* Weight stepper - Touch-friendly buttons */}
+      <div className="flex-1 flex flex-col items-center">
+        <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-0.5 sm:mb-1">
           {set.weightUnit}
         </span>
         <div
-          className="flex items-center gap-1"
+          className="flex items-center gap-0.5 sm:gap-1"
           role="group"
           aria-label={`Weight in ${set.weightUnit}`}
         >
           <button
             type="button"
-            className="h-11 w-11 rounded-full border-2 border-input flex items-center justify-center text-base font-bold touch-target-lg transition-all active:scale-95 active:bg-muted hover:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="h-9 w-9 sm:h-11 sm:w-11 rounded-full border-2 border-input flex items-center justify-center text-sm sm:text-base font-bold transition-all active:scale-95 active:bg-muted hover:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             onClick={onDecrementWeight}
             aria-label="Decrease weight"
           >
             −
           </button>
           <span
-            className="text-xl font-bold tabular-nums min-w-[3.5ch] text-center"
+            className="text-lg sm:text-xl font-bold tabular-nums min-w-[2.5ch] sm:min-w-[3.5ch] text-center px-0.5 sm:px-1"
             aria-live="polite"
           >
             {set.actualWeight % 1 === 0
@@ -233,7 +233,7 @@ export function ConnectedSetRow({
           </span>
           <button
             type="button"
-            className="h-11 w-11 rounded-full border-2 border-input flex items-center justify-center text-base font-bold touch-target-lg transition-all active:scale-95 active:bg-muted hover:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="h-9 w-9 sm:h-11 sm:w-11 rounded-full border-2 border-input flex items-center justify-center text-sm sm:text-base font-bold transition-all active:scale-95 active:bg-muted hover:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             onClick={onIncrementWeight}
             aria-label="Increase weight"
           >
@@ -241,7 +241,7 @@ export function ConnectedSetRow({
           </button>
         </div>
         {lastWorkoutSet && !set.isCompleted && (
-          <span className="text-[10px] text-muted-foreground mt-1">
+          <span className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 sm:mt-1">
             prev: {lastWorkoutSet.weight}{lastWorkoutSet.weightUnit}
           </span>
         )}
@@ -251,9 +251,9 @@ export function ConnectedSetRow({
       <Button
         type="button"
         variant={set.isCompleted ? "default" : "outline"}
-        size="icon-lg"
+        size="icon"
         className={cn(
-          "rounded-full shrink-0 transition-all",
+          "h-9 w-9 sm:h-11 sm:w-11 rounded-full shrink-0 transition-all",
           set.isCompleted && "bg-success hover:bg-success/90 text-success-foreground border-success"
         )}
         onClick={set.isCompleted ? handleUncomplete : handleComplete}
@@ -262,7 +262,7 @@ export function ConnectedSetRow({
       >
         <Check
           className={cn(
-            "h-5 w-5 transition-transform",
+            "h-4 w-4 sm:h-5 sm:w-5 transition-transform",
             set.isCompleted && "scale-110"
           )}
         />
