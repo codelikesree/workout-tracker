@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db/connection";
 import { WorkoutLog } from "@/lib/db/models/workout-log";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { createWorkoutSchema } from "@/lib/validators/workout";
+import { getBodyPartFromExerciseName } from "@/lib/constants/exercises";
 
 // GET /api/workouts - List all workouts for current user
 export async function GET(req: NextRequest) {
@@ -84,8 +85,15 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
+    // Enrich exercises with body part information
+    const exercisesWithBodyPart = validationResult.data.exercises.map((ex) => ({
+      ...ex,
+      bodyPart: getBodyPartFromExerciseName(ex.name),
+    }));
+
     const workout = await WorkoutLog.create({
       ...validationResult.data,
+      exercises: exercisesWithBodyPart,
       userId,
     });
 

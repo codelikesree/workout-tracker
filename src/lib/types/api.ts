@@ -142,6 +142,7 @@ export interface AnalyticsResponse {
     templateCount: number;
   };
   typeBreakdown: Record<string, number>;
+  bodyPartBreakdown: Record<string, number>;
   dailyData: Array<{
     date: string;
     label: string;

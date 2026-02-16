@@ -190,3 +190,11 @@ export function getExercisesGroupedByBodyPart(): Record<BodyPart, Exercise[]> {
     return acc;
   }, {} as Record<BodyPart, Exercise[]>);
 }
+
+// Get body part from exercise name
+export function getBodyPartFromExerciseName(exerciseName: string): BodyPart | undefined {
+  const exercise = EXERCISES.find(
+    (ex) => ex.name.toLowerCase() === exerciseName.toLowerCase()
+  );
+  return exercise?.bodyPart;
+}

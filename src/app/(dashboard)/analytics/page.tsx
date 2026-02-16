@@ -20,6 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { WORKOUT_TYPES } from "@/lib/constants/workout-types";
+import { getBodyPartLabel, type BodyPart } from "@/lib/constants/exercises";
 
 const COLORS = [
   "hsl(var(--chart-1))",
@@ -64,6 +65,7 @@ export default function AnalyticsPage() {
   };
 
   const typeBreakdown = data?.typeBreakdown || {};
+  const bodyPartBreakdown = data?.bodyPartBreakdown || {};
   const dailyData = data?.dailyData || [];
   const comparison = data?.comparison || { current: 0, previous: 0, change: 0 };
 
@@ -72,6 +74,14 @@ export default function AnalyticsPage() {
     name: WORKOUT_TYPES.find((t) => t.value === type)?.label || type,
     value: count as number,
   }));
+
+  // Transform body part breakdown for bar chart
+  const bodyPartData = Object.entries(bodyPartBreakdown)
+    .map(([bodyPart, count]) => ({
+      name: getBodyPartLabel(bodyPart as BodyPart),
+      sets: count as number,
+    }))
+    .sort((a, b) => b.sets - a.sets);
 
   return (
     <div className="space-y-6">
@@ -236,34 +246,66 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      {/* Sets per Day Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Sets Completed</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {dailyData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={dailyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="label" />
-                <YAxis allowDecimals={false} />
-                <Tooltip />
-                <Bar
-                  dataKey="sets"
-                  name="Sets"
-                  fill="hsl(var(--chart-2))"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-              No data for this period
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Body Part Breakdown & Sets per Day */}
+      <div className="grid gap-4 md:grid-cols-2">
+        {/* Body Part Breakdown */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Body Parts Trained</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {bodyPartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={bodyPartData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" allowDecimals={false} />
+                  <YAxis type="category" dataKey="name" width={80} />
+                  <Tooltip />
+                  <Bar
+                    dataKey="sets"
+                    name="Sets"
+                    fill="hsl(var(--chart-3))"
+                    radius={[0, 4, 4, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No data for this period
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Sets per Day Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Sets Completed Daily</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {dailyData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={dailyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="label" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar
+                    dataKey="sets"
+                    name="Sets"
+                    fill="hsl(var(--chart-2))"
+                    radius={[4, 4, 0, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                No data for this period
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

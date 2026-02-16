@@ -73,6 +73,16 @@ export async function GET(req: NextRequest) {
       return acc;
     }, {} as Record<string, number>);
 
+    // Body part breakdown (count of exercises per body part)
+    const bodyPartBreakdown = workouts.reduce((acc, w) => {
+      w.exercises.forEach((ex) => {
+        if (ex.bodyPart) {
+          acc[ex.bodyPart] = (acc[ex.bodyPart] || 0) + ex.sets.length;
+        }
+      });
+      return acc;
+    }, {} as Record<string, number>);
+
     // Daily workout counts for chart
     const days = eachDayOfInterval({ start: startDate, end: endDate });
     const dailyData = days.map((day) => {
@@ -160,6 +170,7 @@ export async function GET(req: NextRequest) {
         templateCount,
       },
       typeBreakdown,
+      bodyPartBreakdown,
       dailyData,
       comparison,
     });

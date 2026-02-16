@@ -20,6 +20,7 @@ export interface IExerciseSet {
 
 export interface IExercise {
   name: string;
+  bodyPart?: string;
   sets: IExerciseSet[];
   restTime?: number;
 }
@@ -54,6 +55,7 @@ const ExerciseSetSchema = new Schema<IExerciseSet>(
 const ExerciseSchema = new Schema<IExercise>(
   {
     name: { type: String, required: true, trim: true },
+    bodyPart: { type: String, trim: true },
     sets: { type: [ExerciseSetSchema], required: true },
     restTime: { type: Number, min: 0 },
   },
