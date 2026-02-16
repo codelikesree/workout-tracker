@@ -43,9 +43,18 @@ export type SessionAction =
     }
   | { type: "ADD_SET"; exerciseIndex: number }
   | { type: "REMOVE_SET"; exerciseIndex: number; setIndex: number }
-  | { type: "ADD_EXERCISE"; name: string }
+  | {
+      type: "ADD_EXERCISE";
+      name: string;
+      sets?: Array<{ reps: number; weight: number; weightUnit: "kg" | "lbs" }>;
+    }
   | { type: "REMOVE_EXERCISE"; exerciseIndex: number }
-  | { type: "UPDATE_EXERCISE_NAME"; exerciseIndex: number; name: string }
+  | {
+      type: "UPDATE_EXERCISE_NAME";
+      exerciseIndex: number;
+      name: string;
+      sets?: Array<{ reps: number; weight: number; weightUnit: "kg" | "lbs" }>;
+    }
   | {
       type: "SET_LAST_WORKOUT_DATA";
       exerciseIndex: number;
@@ -323,21 +332,34 @@ export function sessionReducer(
 
     case "ADD_EXERCISE": {
       if (!state) return null;
+
+      // Use previous workout data if available, otherwise defaults
+      const sets: ActiveSessionSet[] = action.sets?.map((s, i) => ({
+        setNumber: i + 1,
+        targetReps: s.reps,
+        targetWeight: s.weight,
+        actualReps: s.reps,
+        actualWeight: s.weight,
+        weightUnit: s.weightUnit,
+        isCompleted: false,
+        completedAt: null,
+      })) || [
+        {
+          setNumber: 1,
+          targetReps: 10,
+          targetWeight: 0,
+          actualReps: 10,
+          actualWeight: 0,
+          weightUnit: "kg",
+          isCompleted: false,
+          completedAt: null,
+        },
+      ];
+
       const newExercise: ActiveSessionExercise = {
         id: generateId(),
         name: action.name,
-        sets: [
-          {
-            setNumber: 1,
-            targetReps: 10,
-            targetWeight: 0,
-            actualReps: 10,
-            actualWeight: 0,
-            weightUnit: "kg",
-            isCompleted: false,
-            completedAt: null,
-          },
-        ],
+        sets,
         restTime: DEFAULT_REST_TIME,
         notes: "",
       };
@@ -360,9 +382,26 @@ export function sessionReducer(
     case "UPDATE_EXERCISE_NAME": {
       if (!state) return null;
       const exercises = [...state.exercises];
+      const currentExercise = exercises[action.exerciseIndex];
+
+      // Update sets if provided from previous workout
+      const updatedSets = action.sets
+        ? action.sets.map((s, i) => ({
+            setNumber: i + 1,
+            targetReps: s.reps,
+            targetWeight: s.weight,
+            actualReps: s.reps,
+            actualWeight: s.weight,
+            weightUnit: s.weightUnit,
+            isCompleted: false,
+            completedAt: null,
+          }))
+        : currentExercise.sets;
+
       exercises[action.exerciseIndex] = {
-        ...exercises[action.exerciseIndex],
+        ...currentExercise,
         name: action.name,
+        sets: updatedSets,
       };
       return { ...state, exercises };
     }

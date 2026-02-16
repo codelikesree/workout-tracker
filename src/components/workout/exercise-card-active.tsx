@@ -2,6 +2,7 @@
 
 import { Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConnectedSetRow } from "./set-row";
@@ -9,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { useActiveSession } from "@/contexts/active-session-context";
 import type { ActiveSessionExercise } from "@/lib/types/active-session";
 import { ExerciseCombobox } from "@/components/ui/exercise-combobox";
+import { fetchAPI } from "@/lib/api/client";
+import type { LastStatsResponse } from "@/lib/types/api";
 
 interface ExerciseCardActiveProps {
   exerciseIndex: number;
@@ -23,6 +26,7 @@ export function ExerciseCardActive({
   isCurrentExercise,
   canRemove,
 }: ExerciseCardActiveProps) {
+  const { status: authStatus } = useSession();
   const {
     completeSet,
     uncompleteSet,
@@ -41,6 +45,34 @@ export function ExerciseCardActive({
   const totalSets = exercise.sets.length;
   const allCompleted = completedSets === totalSets;
   const needsName = !exercise.name || exercise.name.trim() === "";
+
+  const handleExerciseNameChange = async (name: string) => {
+    // Try to fetch last workout stats for this exercise
+    let sets: Array<{ reps: number; weight: number; weightUnit: "kg" | "lbs" }> | undefined;
+
+    if (authStatus === "authenticated") {
+      try {
+        const params = new URLSearchParams({
+          exercises: name,
+        });
+        const data = await fetchAPI<LastStatsResponse>(
+          `/api/workouts/last-stats?${params}`
+        );
+
+        if (data.stats[name]) {
+          sets = data.stats[name].sets.map(s => ({
+            reps: s.reps,
+            weight: s.weight,
+            weightUnit: s.weightUnit as "kg" | "lbs",
+          }));
+        }
+      } catch {
+        // Non-critical, continue without last workout data
+      }
+    }
+
+    updateExerciseName(exerciseIndex, name, sets);
+  };
 
   return (
     <div
@@ -74,7 +106,7 @@ export function ExerciseCardActive({
           </div>
           <ExerciseCombobox
             value={exercise.name}
-            onChange={(name) => updateExerciseName(exerciseIndex, name)}
+            onChange={handleExerciseNameChange}
             placeholder="Select exercise..."
           />
         </div>

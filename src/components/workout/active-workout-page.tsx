@@ -14,6 +14,8 @@ import { WorkoutTimer } from "./workout-timer";
 import { FinishWorkoutSummary } from "./finish-workout-summary";
 import { DiscardWorkoutDialog } from "./discard-workout-dialog";
 import { ExerciseCombobox } from "@/components/ui/exercise-combobox";
+import { fetchAPI } from "@/lib/api/client";
+import type { LastStatsResponse } from "@/lib/types/api";
 
 export function ActiveWorkoutPage() {
   const router = useRouter();
@@ -73,9 +75,33 @@ export function ActiveWorkoutPage() {
     return <FinishWorkoutSummary />;
   }
 
-  const handleAddExercise = () => {
+  const handleAddExercise = async () => {
     if (newExerciseName) {
-      addExercise(newExerciseName);
+      // Try to fetch last workout stats for this exercise
+      let sets: Array<{ reps: number; weight: number; weightUnit: "kg" | "lbs" }> | undefined;
+
+      if (authStatus === "authenticated") {
+        try {
+          const params = new URLSearchParams({
+            exercises: newExerciseName,
+          });
+          const data = await fetchAPI<LastStatsResponse>(
+            `/api/workouts/last-stats?${params}`
+          );
+
+          if (data.stats[newExerciseName]) {
+            sets = data.stats[newExerciseName].sets.map(s => ({
+              reps: s.reps,
+              weight: s.weight,
+              weightUnit: s.weightUnit as "kg" | "lbs",
+            }));
+          }
+        } catch {
+          // Non-critical, continue without last workout data
+        }
+      }
+
+      addExercise(newExerciseName, sets);
       setNewExerciseName("");
       setShowAddExercise(false);
     }

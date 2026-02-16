@@ -50,9 +50,16 @@ interface ActiveSessionContextValue {
   removeSet: (exerciseIndex: number, setIndex: number) => void;
 
   // Exercise operations
-  addExercise: (name: string) => void;
+  addExercise: (
+    name: string,
+    sets?: Array<{ reps: number; weight: number; weightUnit: "kg" | "lbs" }>
+  ) => void;
   removeExercise: (exerciseIndex: number) => void;
-  updateExerciseName: (exerciseIndex: number, name: string) => void;
+  updateExerciseName: (
+    exerciseIndex: number,
+    name: string,
+    sets?: Array<{ reps: number; weight: number; weightUnit: "kg" | "lbs" }>
+  ) => void;
 
   // Rest timer
   skipRest: () => void;
@@ -238,17 +245,27 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const addExercise = useCallback((name: string) => {
-    dispatch({ type: "ADD_EXERCISE", name });
-  }, []);
+  const addExercise = useCallback(
+    (
+      name: string,
+      sets?: Array<{ reps: number; weight: number; weightUnit: "kg" | "lbs" }>
+    ) => {
+      dispatch({ type: "ADD_EXERCISE", name, sets });
+    },
+    []
+  );
 
   const removeExercise = useCallback((exerciseIndex: number) => {
     dispatch({ type: "REMOVE_EXERCISE", exerciseIndex });
   }, []);
 
   const updateExerciseName = useCallback(
-    (exerciseIndex: number, name: string) => {
-      dispatch({ type: "UPDATE_EXERCISE_NAME", exerciseIndex, name });
+    (
+      exerciseIndex: number,
+      name: string,
+      sets?: Array<{ reps: number; weight: number; weightUnit: "kg" | "lbs" }>
+    ) => {
+      dispatch({ type: "UPDATE_EXERCISE_NAME", exerciseIndex, name, sets });
     },
     []
   );
