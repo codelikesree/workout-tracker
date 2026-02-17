@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/connection";
 import { WorkoutLog } from "@/lib/db/models/workout-log";
@@ -18,7 +19,7 @@ export async function GET() {
     const weekStart = startOfWeek(now, { weekStartsOn: 1 });
     const monthStart = startOfMonth(now);
 
-    const [thisWeek, thisMonth, templateCount, lastWorkout, allWorkouts] =
+    const [thisWeek, thisMonth, templateCount, lastWorkout, allWorkouts, weeklyCaloriesAgg] =
       await Promise.all([
         WorkoutLog.countDocuments({
           userId,
@@ -37,6 +38,10 @@ export async function GET() {
           .sort({ date: -1 })
           .select("date")
           .lean(),
+        WorkoutLog.aggregate([
+          { $match: { userId: new mongoose.Types.ObjectId(userId), date: { $gte: weekStart } } },
+          { $group: { _id: null, total: { $sum: "$estimatedCalories" } } },
+        ]),
       ]);
 
     // Calculate streak
@@ -64,11 +69,14 @@ export async function GET() {
       }
     }
 
+    const weeklyCalories = weeklyCaloriesAgg[0]?.total ?? 0;
+
     return NextResponse.json({
       thisWeek,
       thisMonth,
       streak,
       templateCount,
+      weeklyCalories,
       lastWorkout: lastWorkout
         ? {
             name: lastWorkout.workoutName,

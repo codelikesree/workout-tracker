@@ -2,18 +2,22 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Save, Dumbbell, Clock, Layers, Weight } from "lucide-react";
+import { ArrowLeft, Save, Dumbbell, Clock, Layers, Weight, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { useActiveSession } from "@/contexts/active-session-context";
 import { AuthPromptDialog, PENDING_SAVE_KEY } from "./auth-prompt-dialog";
+import { useProfile } from "@/hooks/use-profile";
+import { estimateCalories, lbsToKg } from "@/lib/utils/calorie-estimator";
+import { getBodyPartFromExerciseName } from "@/lib/constants/exercises";
 
 export function FinishWorkoutSummary() {
   const { status: authStatus } = useSession();
   const { session, saveWorkout, resumeWorkout, updateWorkoutName } =
     useActiveSession();
+  const { data: profileData } = useProfile();
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
@@ -49,6 +53,22 @@ export function FinishWorkoutSummary() {
         .reduce((setAcc, s) => setAcc + s.actualWeight * s.actualReps, 0),
     0
   );
+
+  const userWeight = profileData?.user?.weight;
+  const weightUnit = profileData?.user?.weightUnit ?? "kg";
+  const bodyWeightKg = userWeight
+    ? weightUnit === "lbs" ? lbsToKg(userWeight) : userWeight
+    : 70;
+
+  const estCalories = estimateCalories({
+    workoutType: session.type,
+    durationMinutes: Math.round(session.elapsedSeconds / 60),
+    exercises: completedExercises.map((ex) => ({
+      bodyPart: getBodyPartFromExerciseName(ex.name),
+      setCount: ex.sets.filter((s) => s.isCompleted).length,
+    })),
+    bodyWeightKg,
+  });
 
   const hours = Math.floor(session.elapsedSeconds / 3600);
   const minutes = Math.floor((session.elapsedSeconds % 3600) / 60);
@@ -142,6 +162,19 @@ export function FinishWorkoutSummary() {
               </div>
             </CardContent>
           </Card>
+          {estCalories > 0 && (
+            <Card className="col-span-2">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-orange-500/10 flex items-center justify-center">
+                  <Flame className="h-5 w-5 text-orange-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Est. Calories</p>
+                  <p className="text-lg font-bold">{estCalories} kcal</p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Exercise breakdown */}

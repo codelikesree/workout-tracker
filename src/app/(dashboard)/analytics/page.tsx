@@ -14,7 +14,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import { Dumbbell, Calendar, TrendingUp, Clock } from "lucide-react";
+import { Dumbbell, Calendar, TrendingUp, Clock, Flame } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -68,6 +68,7 @@ export default function AnalyticsPage() {
     totalExercises: 0,
     totalSets: 0,
     totalDuration: 0,
+    totalCalories: 0,
     streak: 0,
     templateCount: 0,
   };
@@ -193,6 +194,22 @@ export default function AnalyticsPage() {
               <p className="text-xs text-muted-foreground mt-1">total minutes</p>
             </CardContent>
           </Card>
+          {(stats.totalCalories ?? 0) > 0 && (
+            <Card className="transition-all hover:shadow-md">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium">Calories Burned</CardTitle>
+                  <div className="rounded-full bg-orange-500/10 p-2">
+                    <Flame className="h-4 w-4 text-orange-500" />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold tabular-nums">{stats.totalCalories}</div>
+                <p className="text-xs text-muted-foreground mt-1">estimated kcal</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </section>
 

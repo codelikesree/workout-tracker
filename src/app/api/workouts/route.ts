@@ -4,6 +4,8 @@ import { WorkoutLog } from "@/lib/db/models/workout-log";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { createWorkoutSchema } from "@/lib/validators/workout";
 import { getBodyPartFromExerciseName } from "@/lib/constants/exercises";
+import { User } from "@/lib/db/models/user";
+import { estimateCalories, lbsToKg } from "@/lib/utils/calorie-estimator";
 
 // GET /api/workouts - List all workouts for current user
 export async function GET(req: NextRequest) {
@@ -91,9 +93,28 @@ export async function POST(req: NextRequest) {
       bodyPart: getBodyPartFromExerciseName(ex.name),
     }));
 
+    // Fetch user weight for calorie estimation
+    const user = await User.findById(userId).select("weight weightUnit").lean();
+    const bodyWeightKg = user?.weight
+      ? user.weightUnit === "lbs"
+        ? lbsToKg(user.weight)
+        : user.weight
+      : 70; // default fallback
+
+    const estimatedCals = estimateCalories({
+      workoutType: validationResult.data.type,
+      durationMinutes: validationResult.data.duration ?? 0,
+      exercises: exercisesWithBodyPart.map((ex) => ({
+        bodyPart: ex.bodyPart,
+        setCount: ex.sets.length,
+      })),
+      bodyWeightKg,
+    });
+
     const workout = await WorkoutLog.create({
       ...validationResult.data,
       exercises: exercisesWithBodyPart,
+      estimatedCalories: estimatedCals,
       userId,
     });
 

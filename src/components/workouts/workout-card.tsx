@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { format } from "date-fns";
-import { MoreVertical, Edit, Trash2, Eye, Dumbbell } from "lucide-react";
+import { MoreVertical, Edit, Trash2, Eye, Dumbbell, Flame } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -47,6 +47,7 @@ interface WorkoutCardProps {
     date: string;
     exercises: Exercise[];
     duration?: number;
+    estimatedCalories?: number;
   };
 }
 
@@ -111,6 +112,12 @@ export function WorkoutCard({ workout }: WorkoutCardProps) {
             <Badge variant="secondary">{typeLabel}</Badge>
             {workout.duration && (
               <Badge variant="outline">{workout.duration} min</Badge>
+            )}
+            {workout.estimatedCalories != null && workout.estimatedCalories > 0 && (
+              <Badge variant="outline" className="gap-1">
+                <Flame className="h-3 w-3 text-orange-500" />
+                {workout.estimatedCalories} kcal
+              </Badge>
             )}
           </div>
           <div className="space-y-2">

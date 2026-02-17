@@ -33,6 +33,7 @@ export interface IWorkoutLog extends Document {
   date: Date;
   exercises: IExercise[];
   duration?: number;
+  estimatedCalories?: number;
   notes?: string;
   templateId?: mongoose.Types.ObjectId;
   createdAt: Date;
@@ -97,6 +98,10 @@ const WorkoutLogSchema = new Schema<IWorkoutLog>(
     duration: {
       type: Number,
       min: [0, "Duration must be positive"],
+    },
+    estimatedCalories: {
+      type: Number,
+      min: 0,
     },
     notes: {
       type: String,

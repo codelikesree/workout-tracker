@@ -256,6 +256,7 @@ export async function GET(req: NextRequest) {
       0
     );
     const totalDuration = workouts.reduce((acc, w) => acc + (w.duration || 0), 0);
+    const totalCalories = workouts.reduce((acc, w) => acc + (w.estimatedCalories || 0), 0);
 
     // Workout type breakdown
     const typeBreakdown = workouts.reduce((acc, w) => {
@@ -380,6 +381,7 @@ export async function GET(req: NextRequest) {
         totalExercises,
         totalSets,
         totalDuration,
+        totalCalories,
         streak,
         templateCount,
       },

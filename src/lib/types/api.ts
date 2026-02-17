@@ -25,6 +25,7 @@ export interface WorkoutResponse {
     date: string;
     exercises: WorkoutExerciseResponse[];
     duration?: number;
+    estimatedCalories?: number;
     notes?: string;
     templateId?: string;
     createdAt: string;
@@ -123,6 +124,7 @@ export interface DashboardStatsResponse {
   thisMonth: number;
   streak: number;
   templateCount: number;
+  weeklyCalories: number;
   lastWorkout: {
     name: string;
     date: string;
@@ -138,6 +140,7 @@ export interface AnalyticsResponse {
     totalExercises: number;
     totalSets: number;
     totalDuration: number;
+    totalCalories: number;
     streak: number;
     templateCount: number;
   };

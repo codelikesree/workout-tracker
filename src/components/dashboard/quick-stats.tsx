@@ -5,6 +5,7 @@ import {
   CalendarDays,
   Flame,
   FileText,
+  Zap,
 } from "lucide-react";
 import { StatCard } from "@/components/shared";
 import { useDashboardStats } from "@/hooks/use-dashboard-stats";
@@ -36,6 +37,12 @@ export function QuickStats() {
       value: data?.templateCount ?? 0,
       icon: FileText,
       unit: "saved",
+    },
+    {
+      label: "Calories This Week",
+      value: data?.weeklyCalories ?? 0,
+      icon: Zap,
+      unit: "kcal",
     },
   ];
 

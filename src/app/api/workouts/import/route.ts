@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/db/connection";
 import { WorkoutLog } from "@/lib/db/models/workout-log";
 import { getCurrentUserId } from "@/lib/auth/session";
 import { parseWorkoutText } from "@/lib/utils/import-parser";
+import { User } from "@/lib/db/models/user";
+import { estimateCalories, lbsToKg } from "@/lib/utils/calorie-estimator";
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,10 +37,27 @@ export async function POST(req: NextRequest) {
 
     await connectDB();
 
+    // Fetch user weight for calorie estimation
+    const user = await User.findById(userId).select("weight weightUnit").lean();
+    const bodyWeightKg = user?.weight
+      ? user.weightUnit === "lbs"
+        ? lbsToKg(user.weight)
+        : user.weight
+      : 70;
+
     const workouts = await WorkoutLog.insertMany(
       parsed.map((w) => ({
         ...w,
         userId,
+        estimatedCalories: estimateCalories({
+          workoutType: w.type ?? "other",
+          durationMinutes: 45, // default estimate for imported workouts
+          exercises: (w.exercises ?? []).map((ex: { bodyPart?: string; sets?: unknown[] }) => ({
+            bodyPart: ex.bodyPart,
+            setCount: ex.sets?.length ?? 0,
+          })),
+          bodyWeightKg,
+        }),
       }))
     );
 
