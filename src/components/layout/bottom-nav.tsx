@@ -8,7 +8,7 @@ import {
   LayoutDashboard,
   Dumbbell,
   Plus,
-  FileText,
+  ListPlus,
   User,
 } from "lucide-react";
 import { StartWorkoutSheet } from "@/components/workout/start-workout-sheet";
@@ -17,7 +17,7 @@ const tabs = [
   { title: "Home", href: "/dashboard", icon: LayoutDashboard },
   { title: "Workouts", href: "/workouts", icon: Dumbbell },
   // Center "Start" button is rendered separately
-  { title: "Templates", href: "/templates", icon: FileText },
+  { title: "Exercises", href: "/exercises", icon: ListPlus },
   { title: "Profile", href: "/profile", icon: User },
 ];
 
