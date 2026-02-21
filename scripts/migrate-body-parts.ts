@@ -1,10 +1,11 @@
 #!/usr/bin/env tsx
 
 /**
- * Migration Script: Add Body Part to Existing Workouts
+ * Migration Script: Add Body Part & Estimated Calories to Existing Workouts
  *
- * This script updates all existing workout logs to include body part information
- * for each exercise based on the exercise name.
+ * This script updates all existing workout logs to include:
+ *   1. Body part information for each exercise (based on exercise name)
+ *   2. Estimated calories burned (using MET-based calculation)
  *
  * Usage:
  *   npm run migrate:body-parts
@@ -17,7 +18,9 @@ import { config } from "dotenv";
 import { resolve } from "path";
 import mongoose from "mongoose";
 import { WorkoutLog } from "../src/lib/db/models/workout-log";
+import { User } from "../src/lib/db/models/user";
 import { getBodyPartFromExerciseName } from "../src/lib/constants/exercises";
+import { estimateCalories, lbsToKg } from "../src/lib/utils/calorie-estimator";
 
 // Load environment variables from .env.local
 config({ path: resolve(process.cwd(), ".env.local") });
@@ -132,6 +135,73 @@ async function migrateBodyParts() {
     } else {
       console.log("✅ All exercises have body part mappings!\n");
     }
+
+    // ─── Phase 2: Backfill Estimated Calories ───────────────────────────
+    console.log("\n🔥 Starting calorie estimation backfill...\n");
+
+    // Build a map of userId → bodyWeightKg
+    const users = await User.find({}).select("weight weightUnit").lean();
+    const userWeightMap = new Map<string, number>();
+    for (const u of users) {
+      const wKg = u.weight
+        ? u.weightUnit === "lbs" ? lbsToKg(u.weight) : u.weight
+        : 70;
+      userWeightMap.set(u._id.toString(), wKg);
+    }
+
+    // Re-fetch workouts (body parts are now populated from phase 1)
+    const workoutsForCal = await WorkoutLog.find({}).lean();
+    let calUpdated = 0;
+    let calSkipped = 0;
+    let calErrors = 0;
+
+    for (const workout of workoutsForCal) {
+      try {
+        // Skip if already has calories
+        if (workout.estimatedCalories != null && workout.estimatedCalories > 0) {
+          calSkipped++;
+          continue;
+        }
+
+        const bodyWeightKg = userWeightMap.get(workout.userId.toString()) ?? 70;
+        const durationMinutes = workout.duration ?? 45; // default 45min if no duration
+
+        const cals = estimateCalories({
+          workoutType: workout.type ?? "other",
+          durationMinutes,
+          exercises: workout.exercises.map((ex) => ({
+            bodyPart: ex.bodyPart,
+            setCount: ex.sets.length,
+          })),
+          bodyWeightKg,
+        });
+
+        if (cals > 0) {
+          await WorkoutLog.updateOne(
+            { _id: workout._id },
+            { $set: { estimatedCalories: cals } },
+          );
+          calUpdated++;
+          console.log(
+            `🔥 ${workout.workoutName} (${new Date(workout.date).toLocaleDateString()}) → ${cals} kcal`,
+          );
+        } else {
+          calSkipped++;
+        }
+      } catch (error) {
+        calErrors++;
+        console.error(`✗ Error estimating calories for ${workout._id}:`, error);
+      }
+    }
+
+    console.log("\n" + "=".repeat(60));
+    console.log("🔥 Calorie Backfill Summary:");
+    console.log("=".repeat(60));
+    console.log(`Total workouts processed: ${workoutsForCal.length}`);
+    console.log(`✅ Calories added: ${calUpdated}`);
+    console.log(`⏭️  Skipped (already had calories): ${calSkipped}`);
+    console.log(`❌ Errors: ${calErrors}`);
+    console.log("=".repeat(60) + "\n");
 
     console.log("✅ Migration completed successfully!\n");
   } catch (error) {
