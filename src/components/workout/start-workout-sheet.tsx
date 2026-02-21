@@ -54,7 +54,7 @@ function useLoadingStep(active: boolean) {
     };
   }, [active]);
 
-  return LOADING_STEPS[step];
+  return { message: LOADING_STEPS[step], index: step };
 }
 
 interface StartWorkoutSheetProps {
@@ -74,7 +74,9 @@ export function StartWorkoutSheet({
     useAiWorkoutSuggestion();
 
   const [userPrompt, setUserPrompt] = useState("");
-  const loadingMessage = useLoadingStep(aiState.status === "loading");
+  const { message: loadingMessage, index: loadingIndex } = useLoadingStep(
+    aiState.status === "loading"
+  );
 
   const handleEmptyWorkout = () => {
     const config: StartWorkoutConfig = {
@@ -110,10 +112,6 @@ export function StartWorkoutSheet({
     router.push("/workout/active");
   };
 
-  const handleRegenerate = () => {
-    fetchSuggestion(userPrompt.trim() || undefined);
-  };
-
   const templates = templatesData?.templates || [];
 
   return (
@@ -127,12 +125,12 @@ export function StartWorkoutSheet({
         onOpenChange(o);
       }}
     >
-      <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh]">
+      <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh]">
         <SheetHeader className="pb-4">
           <SheetTitle>Start Workout</SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-4 overflow-y-auto pb-8">
+        <div className="space-y-3 overflow-y-auto pb-safe-or-8 pb-8">
           {/* Empty workout */}
           <Button
             variant="outline"
@@ -148,80 +146,87 @@ export function StartWorkoutSheet({
             </div>
           </Button>
 
-          {/* ── AI Suggest section ─────────────────────────────── */}
-
-          {/* Idle: prompt input + button */}
+          {/* ── AI Suggest: idle / error ─────────────────────── */}
           {(aiState.status === "idle" || aiState.status === "error") && (
-            <div className="border border-violet-500/40 rounded-xl overflow-hidden bg-violet-500/5 dark:bg-violet-500/10">
-              <div className="px-4 pt-4 pb-3 flex items-center gap-2">
+            <div className="border border-violet-500/40 rounded-xl bg-violet-500/5 dark:bg-violet-500/10">
+              {/* Title row */}
+              <div className="px-4 pt-4 pb-2 flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-violet-500 shrink-0" />
                 <span className="text-sm font-semibold text-violet-600 dark:text-violet-400">
                   AI Suggest
                 </span>
+                <span className="text-xs text-muted-foreground">
+                  · based on your last 10 workouts
+                </span>
               </div>
 
-              {/* Optional prompt */}
-              <div className="px-4 pb-3">
-                <div className="flex gap-2">
+              {/* Input row — stacked on smallest screens, side-by-side otherwise */}
+              <div className="px-4 pb-1">
+                <div className="flex gap-2 items-stretch">
+                  {/* font-size 16px prevents iOS auto-zoom */}
                   <Input
                     value={userPrompt}
                     onChange={(e) => setUserPrompt(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleFetchSuggestion()}
                     placeholder="e.g. focus on chest, keep it light…"
-                    className="text-sm h-9 bg-background"
+                    className="flex-1 h-11 text-base bg-background"
                     maxLength={120}
+                    style={{ fontSize: "16px" }}
                   />
                   <Button
-                    size="sm"
-                    className="bg-violet-600 hover:bg-violet-700 text-white px-3 shrink-0"
+                    className="h-11 w-11 shrink-0 bg-violet-600 hover:bg-violet-700 text-white p-0"
                     onClick={handleFetchSuggestion}
+                    aria-label="Get AI suggestion"
                   >
-                    <Send className="h-3.5 w-3.5" />
+                    <Send className="h-4 w-4" />
                   </Button>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1.5 px-0.5">
+                <p className="text-xs text-muted-foreground mt-1.5">
                   Optional — leave blank for a fully automatic suggestion
                 </p>
               </div>
 
-              {/* Error inline */}
+              {/* Error message */}
               {aiState.status === "error" && (
-                <div className="mx-4 mb-3 flex items-center gap-2 p-2.5 rounded-lg border border-destructive/40 bg-destructive/5">
-                  <AlertCircle className="h-4 w-4 text-destructive shrink-0" />
-                  <p className="text-xs text-destructive">{aiState.message}</p>
+                <div className="mx-4 mb-3 mt-1 flex items-start gap-2 p-3 rounded-lg border border-destructive/40 bg-destructive/5">
+                  <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                  <p className="text-xs text-destructive leading-relaxed">
+                    {aiState.message}
+                  </p>
                 </div>
               )}
+
+              <div className="pb-3" />
             </div>
           )}
 
-          {/* Loading: animated status steps */}
+          {/* ── AI Suggest: loading ──────────────────────────── */}
           {aiState.status === "loading" && (
-            <div className="border border-violet-500/40 rounded-xl px-4 py-5 bg-violet-500/5 dark:bg-violet-500/10">
+            <div className="border border-violet-500/40 rounded-xl px-4 py-4 bg-violet-500/5 dark:bg-violet-500/10">
               <div className="flex items-center gap-3">
                 <div className="h-10 w-10 rounded-full bg-violet-500/15 flex items-center justify-center shrink-0">
                   <Loader2 className="h-5 w-5 text-violet-500 animate-spin" />
                 </div>
-                <div className="space-y-1 flex-1">
-                  <p className="text-sm font-medium text-violet-600 dark:text-violet-400">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-violet-600 dark:text-violet-400">
                     Thinking…
                   </p>
                   <p
                     key={loadingMessage}
-                    className="text-xs text-muted-foreground transition-all duration-500"
+                    className="text-xs text-muted-foreground mt-0.5 truncate"
                   >
                     {loadingMessage}
                   </p>
                 </div>
               </div>
-              {/* Progress dots */}
-              <div className="flex gap-1.5 mt-4 pl-[52px]">
-                {LOADING_STEPS.map((step, i) => (
+
+              {/* Progress bar */}
+              <div className="mt-3 flex gap-1">
+                {LOADING_STEPS.map((_, i) => (
                   <div
                     key={i}
-                    className={`h-1.5 rounded-full transition-all duration-500 ${
-                      LOADING_STEPS.indexOf(loadingMessage) >= i
-                        ? "bg-violet-500 w-4"
-                        : "bg-muted w-1.5"
+                    className={`h-1 rounded-full flex-1 transition-all duration-500 ${
+                      loadingIndex >= i ? "bg-violet-500" : "bg-muted"
                     }`}
                   />
                 ))}
@@ -229,67 +234,59 @@ export function StartWorkoutSheet({
             </div>
           )}
 
-          {/* Ready: suggestion preview */}
+          {/* ── AI Suggest: ready (suggestion preview) ───────── */}
           {aiState.status === "ready" && (
             <div className="border border-violet-500/30 rounded-xl overflow-hidden bg-violet-500/5 dark:bg-violet-500/10">
               {/* Header */}
-              <div className="px-4 pt-4 pb-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-violet-500" />
-                  <span className="text-sm font-semibold text-violet-600 dark:text-violet-400">
-                    AI Suggestion
+              <div className="px-4 pt-3 pb-2 flex items-center justify-between">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Sparkles className="h-4 w-4 text-violet-500 shrink-0" />
+                  <span className="text-sm font-semibold text-violet-600 dark:text-violet-400 truncate">
+                    {aiState.suggestion.workoutName}
                   </span>
-                  <Badge variant="secondary" className="text-xs capitalize">
+                  <Badge variant="secondary" className="text-xs capitalize shrink-0">
                     {aiState.suggestion.type}
                   </Badge>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 text-muted-foreground"
+                {/* Larger touch target for close */}
+                <button
                   onClick={resetSuggestion}
+                  className="h-8 w-8 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors shrink-0 ml-2"
+                  aria-label="Dismiss suggestion"
                 >
-                  <X className="h-3 w-3" />
-                </Button>
+                  <X className="h-4 w-4" />
+                </button>
               </div>
 
-              {/* Name + rationale */}
-              <div className="px-4 pb-2">
-                <p className="font-semibold text-base">
-                  {aiState.suggestion.workoutName}
-                </p>
-                <p className="text-xs text-muted-foreground italic mt-0.5">
-                  {aiState.suggestion.rationale}
-                </p>
-              </div>
+              {/* Rationale */}
+              <p className="px-4 pb-3 text-xs text-muted-foreground italic leading-relaxed">
+                {aiState.suggestion.rationale}
+              </p>
 
-              {/* Exercise list */}
-              <div className="px-4 pb-3 space-y-1.5">
+              {/* Exercise list — two lines per exercise for readability */}
+              <div className="px-4 pb-3 space-y-2">
                 {aiState.suggestion.exercises.map((ex, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="font-medium truncate mr-2">{ex.name}</span>
-                    <span className="text-muted-foreground text-xs whitespace-nowrap">
-                      {ex.targetSets}×{ex.targetReps} @ {ex.targetWeight}
-                      {ex.weightUnit}
+                  <div key={i} className="flex items-center justify-between gap-3 py-1.5 border-b border-border/50 last:border-0">
+                    <span className="font-medium text-sm leading-tight">{ex.name}</span>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap shrink-0 tabular-nums">
+                      {ex.targetSets}×{ex.targetReps} @ {ex.targetWeight}{ex.weightUnit}
                     </span>
                   </div>
                 ))}
               </div>
 
-              {/* Actions */}
+              {/* Actions — full-height buttons for easy tapping */}
               <div className="px-4 pb-4 flex gap-2">
                 <Button
                   variant="outline"
-                  size="sm"
-                  className="flex-1"
-                  onClick={handleRegenerate}
+                  className="flex-1 h-11"
+                  onClick={() => fetchSuggestion(userPrompt.trim() || undefined)}
                 >
-                  <RefreshCw className="h-3 w-3 mr-1.5" />
+                  <RefreshCw className="h-4 w-4 mr-2" />
                   Regenerate
                 </Button>
                 <Button
-                  size="sm"
-                  className="flex-1 bg-violet-600 hover:bg-violet-700 text-white"
+                  className="flex-1 h-11 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white"
                   onClick={handleStartAiSuggestion}
                 >
                   Start Workout
@@ -301,7 +298,7 @@ export function StartWorkoutSheet({
           {/* ── Templates ──────────────────────────────────────── */}
           {templates.length > 0 && (
             <div className="space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground px-1">
+              <h3 className="text-sm font-medium text-muted-foreground px-1 pt-1">
                 From Template
               </h3>
               {templates.map(
