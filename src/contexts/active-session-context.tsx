@@ -35,7 +35,7 @@ interface ActiveSessionContextValue {
   startWorkout: (config: StartWorkoutConfig) => void;
   discardWorkout: () => void;
   finishWorkout: () => void;
-  saveWorkout: () => Promise<void>;
+  saveWorkout: (templateIdOverride?: string) => Promise<void>;
   resumeWorkout: () => void;
 
   // Set operations
@@ -165,7 +165,7 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "SET_STATUS", status: "active" });
   }, []);
 
-  const saveWorkout = useCallback(async () => {
+  const saveWorkout = useCallback(async (templateIdOverride?: string) => {
     if (!session) return;
 
     dispatch({ type: "SET_STATUS", status: "saving" });
@@ -175,7 +175,7 @@ export function ActiveSessionProvider({ children }: { children: ReactNode }) {
         workoutName: session.workoutName,
         type: session.type,
         date: new Date(session.startedAt).toISOString(),
-        templateId: session.templateId || undefined,
+        templateId: templateIdOverride ?? session.templateId ?? undefined,
         duration: Math.round(session.elapsedSeconds / 60),
         exercises: session.exercises
           .filter((ex) => ex.sets.some((s) => s.isCompleted))

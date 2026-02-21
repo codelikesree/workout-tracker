@@ -91,6 +91,7 @@ function configToSession(config: StartWorkoutConfig): ActiveSession {
     workoutName: config.workoutName,
     type: config.type,
     templateId: config.templateId || null,
+    isAiSuggested: config.isAiSuggested ?? false,
     startedAt: new Date().toISOString(),
     exercises: config.exercises.map((ex) => ({
       id: generateId(),

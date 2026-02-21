@@ -41,6 +41,7 @@ export interface ActiveSession {
   workoutName: string;
   type: WorkoutType;
   templateId: string | null;
+  isAiSuggested: boolean;
   startedAt: string; // ISO timestamp
   exercises: ActiveSessionExercise[];
   elapsedSeconds: number;
@@ -53,6 +54,7 @@ export interface StartWorkoutConfig {
   workoutName: string;
   type: WorkoutType;
   templateId?: string;
+  isAiSuggested?: boolean;
   exercises: Array<{
     name: string;
     sets: Array<{

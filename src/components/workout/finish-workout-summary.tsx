@@ -2,26 +2,41 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Save, Dumbbell, Clock, Layers, Weight, Flame } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ArrowLeft, Save, Dumbbell, Clock, Layers, Weight, Flame, BookmarkPlus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
 import { useActiveSession } from "@/contexts/active-session-context";
+import { fetchAPI } from "@/lib/api/client";
 import { AuthPromptDialog, PENDING_SAVE_KEY } from "./auth-prompt-dialog";
 import { useProfile } from "@/hooks/use-profile";
 import { estimateCalories, lbsToKg } from "@/lib/utils/calorie-estimator";
 import { getBodyPartFromExerciseName } from "@/lib/constants/exercises";
+import type { TemplateResponse } from "@/lib/types/api";
 
 export function FinishWorkoutSummary() {
   const { status: authStatus } = useSession();
   const { session, saveWorkout, resumeWorkout, updateWorkoutName } =
     useActiveSession();
   const { data: profileData } = useProfile();
+  const queryClient = useQueryClient();
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [saveAsTemplate, setSaveAsTemplate] = useState(false);
   const autoSaveTriggered = useRef(false);
+
+  // Default the toggle ON for AI-suggested workouts
+  useEffect(() => {
+    if (session?.isAiSuggested) {
+      setSaveAsTemplate(true);
+    }
+  }, [session?.isAiSuggested]);
 
   // Auto-save when returning from auth with a pending save
   useEffect(() => {
@@ -81,9 +96,54 @@ export function FinishWorkoutSummary() {
       return;
     }
     setIsSaving(true);
-    await saveWorkout();
+
+    let resolvedTemplateId: string | undefined;
+
+    if (saveAsTemplate && completedExercises.length > 0) {
+      setIsSavingTemplate(true);
+      try {
+        const templatePayload = {
+          name: session.workoutName,
+          type: session.type,
+          description: session.isAiSuggested
+            ? "AI-generated workout template"
+            : undefined,
+          exercises: completedExercises.map((ex) => {
+            const completedSets = ex.sets.filter((s) => s.isCompleted);
+            const firstSet = completedSets[0];
+            return {
+              name: ex.name,
+              targetSets: completedSets.length,
+              targetReps: firstSet?.actualReps ?? 10,
+              targetWeight: firstSet?.actualWeight ?? 0,
+              weightUnit: firstSet?.weightUnit ?? "kg",
+              restTime: ex.restTime,
+            };
+          }),
+        };
+
+        const templateData = await fetchAPI<TemplateResponse>(
+          "/api/templates",
+          { method: "POST", body: JSON.stringify(templatePayload) }
+        );
+        resolvedTemplateId = templateData.template._id;
+        queryClient.invalidateQueries({ queryKey: ["templates"] });
+      } catch {
+        toast.warning("Could not save template — your workout will still be logged.");
+      } finally {
+        setIsSavingTemplate(false);
+      }
+    }
+
+    await saveWorkout(resolvedTemplateId);
     setIsSaving(false);
   };
+
+  const saveButtonLabel = isSavingTemplate
+    ? "Saving template..."
+    : isSaving
+    ? "Saving..."
+    : "Save Workout";
 
   return (
     <div className="h-dvh bg-background flex flex-col overflow-hidden">
@@ -208,6 +268,25 @@ export function FinishWorkoutSummary() {
           />
         </div>
 
+        {/* Save as Template toggle */}
+        {completedExercises.length > 0 && (
+          <div className="flex items-center justify-between p-4 border rounded-xl bg-muted/30">
+            <div className="flex items-center gap-3">
+              <BookmarkPlus className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">Save as Template</p>
+                <p className="text-xs text-muted-foreground">
+                  Reuse this workout in the future
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={saveAsTemplate}
+              onCheckedChange={setSaveAsTemplate}
+            />
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex gap-3 pb-8">
           <Button
@@ -223,10 +302,10 @@ export function FinishWorkoutSummary() {
             type="button"
             className="flex-1"
             onClick={handleSave}
-            disabled={isSaving || completedExercises.length === 0}
+            disabled={isSaving || isSavingTemplate || completedExercises.length === 0}
           >
             <Save className="h-4 w-4 mr-2" />
-            {isSaving ? "Saving..." : "Save Workout"}
+            {saveButtonLabel}
           </Button>
         </div>
       </div>
