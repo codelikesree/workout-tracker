@@ -11,6 +11,7 @@ import {
   BarChart3,
   Upload,
   User,
+  ListPlus,
 } from "lucide-react";
 
 const navItems = [
@@ -28,6 +29,11 @@ const navItems = [
     title: "Templates",
     href: "/templates",
     icon: FileText,
+  },
+  {
+    title: "Exercises",
+    href: "/exercises",
+    icon: ListPlus,
   },
   {
     title: "History",
