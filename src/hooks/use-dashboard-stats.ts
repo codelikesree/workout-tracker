@@ -10,5 +10,6 @@ export function useDashboardStats() {
   return useQuery<DashboardStats>({
     queryKey: ["dashboard-stats"],
     queryFn: () => fetchAPI<DashboardStatsResponse>("/api/dashboard/stats"),
+    staleTime: 2 * 60 * 1000, // dashboard stats are stable within a session
   });
 }

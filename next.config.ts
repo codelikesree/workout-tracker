@@ -3,6 +3,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactCompiler: true,
 
+  // Keep mongoose (and other server-only packages) out of client bundles
+  serverExternalPackages: ["mongoose"],
+
   // Image optimization
   images: {
     formats: ["image/avif", "image/webp"],

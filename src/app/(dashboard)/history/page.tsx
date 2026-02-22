@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, addWeeks, subWeeks } from "date-fns";
-import { ChevronLeft, ChevronRight, Dumbbell, Eye, Calendar as CalendarIcon } from "lucide-react";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isSameMonth, addMonths, subMonths, addWeeks, subWeeks, parseISO } from "date-fns";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,11 +32,23 @@ interface Workout {
   duration?: number;
 }
 
-export default function HistoryPage() {
-  const [view, setView] = useState<"month" | "week">("month");
-  const [currentDate, setCurrentDate] = useState(new Date());
+// ─── Inner component (uses useSearchParams) ──────────────────────────────────
 
-  // Get date range based on view
+function HistoryContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const view = (searchParams.get("view") ?? "month") as "month" | "week";
+  const dateParam = searchParams.get("date");
+  const currentDate = dateParam ? parseISO(dateParam) : new Date();
+
+  const pushParams = (newView: string, newDate: Date) => {
+    const params = new URLSearchParams();
+    params.set("view", newView);
+    params.set("date", format(newDate, "yyyy-MM-dd"));
+    router.replace(`/history?${params.toString()}`);
+  };
+
   const startDate =
     view === "month"
       ? startOfMonth(currentDate)
@@ -53,31 +66,22 @@ export default function HistoryPage() {
 
   const workouts: Workout[] = data?.workouts || [];
 
-  const getWorkoutsForDay = (day: Date) => {
-    return workouts.filter((w) =>
-      isSameDay(new Date(w.date), day)
-    );
-  };
+  const getWorkoutsForDay = (day: Date) =>
+    workouts.filter((w) => isSameDay(new Date(w.date), day));
 
   const navigatePrevious = () => {
-    if (view === "month") {
-      setCurrentDate(subMonths(currentDate, 1));
-    } else {
-      setCurrentDate(subWeeks(currentDate, 1));
-    }
+    const newDate =
+      view === "month" ? subMonths(currentDate, 1) : subWeeks(currentDate, 1);
+    pushParams(view, newDate);
   };
 
   const navigateNext = () => {
-    if (view === "month") {
-      setCurrentDate(addMonths(currentDate, 1));
-    } else {
-      setCurrentDate(addWeeks(currentDate, 1));
-    }
+    const newDate =
+      view === "month" ? addMonths(currentDate, 1) : addWeeks(currentDate, 1);
+    pushParams(view, newDate);
   };
 
-  const goToToday = () => {
-    setCurrentDate(new Date());
-  };
+  const goToToday = () => pushParams(view, new Date());
 
   return (
     <div className="space-y-6">
@@ -90,7 +94,7 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      <Tabs value={view} onValueChange={(v) => setView(v as "month" | "week")}>
+      <Tabs value={view} onValueChange={(v) => pushParams(v, currentDate)}>
         <div className="flex items-center justify-between">
           <TabsList>
             <TabsTrigger value="month">Month</TabsTrigger>
@@ -144,24 +148,19 @@ export default function HistoryPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold">{workouts.length}</div>
-              <div className="text-sm text-muted-foreground">
-                Total Workouts
-              </div>
+              <div className="text-sm text-muted-foreground">Total Workouts</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold">
                 {workouts.reduce((acc, w) => acc + w.exercises.length, 0)}
               </div>
-              <div className="text-sm text-muted-foreground">
-                Total Exercises
-              </div>
+              <div className="text-sm text-muted-foreground">Total Exercises</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold">
                 {workouts.reduce(
                   (acc, w) =>
-                    acc +
-                    w.exercises.reduce((eAcc, e) => eAcc + e.sets.length, 0),
+                    acc + w.exercises.reduce((eAcc, e) => eAcc + e.sets.length, 0),
                   0
                 )}
               </div>
@@ -171,9 +170,7 @@ export default function HistoryPage() {
               <div className="text-2xl font-bold">
                 {workouts.reduce((acc, w) => acc + (w.duration || 0), 0)}
               </div>
-              <div className="text-sm text-muted-foreground">
-                Total Minutes
-              </div>
+              <div className="text-sm text-muted-foreground">Total Minutes</div>
             </div>
           </div>
         </CardContent>
@@ -181,6 +178,8 @@ export default function HistoryPage() {
     </div>
   );
 }
+
+// ─── Month / Week view components (unchanged) ────────────────────────────────
 
 function MonthView({
   currentDate,
@@ -202,7 +201,6 @@ function MonthView({
   return (
     <Card>
       <CardContent className="pt-6">
-        {/* Week day headers */}
         <div className="grid grid-cols-7 gap-1 mb-2">
           {weekDays.map((day) => (
             <div
@@ -214,7 +212,6 @@ function MonthView({
           ))}
         </div>
 
-        {/* Calendar grid */}
         <div className="grid grid-cols-7 gap-1">
           {days.map((day) => {
             const dayWorkouts = getWorkoutsForDay(day);
@@ -241,11 +238,7 @@ function MonthView({
                 </div>
                 <div className="space-y-1">
                   {dayWorkouts.slice(0, 2).map((workout) => (
-                    <Link
-                      key={workout._id}
-                      href={`/workouts/${workout._id}`}
-                      className="block"
-                    >
+                    <Link key={workout._id} href={`/workouts/${workout._id}`} className="block">
                       <div className="text-xs p-1 bg-primary/10 rounded truncate hover:bg-primary/20 transition-colors">
                         {workout.workoutName}
                       </div>
@@ -285,18 +278,10 @@ function WeekView({
         const isToday = isSameDay(day, new Date());
 
         return (
-          <Card
-            key={day.toISOString()}
-            className={cn(isToday && "border-primary")}
-          >
+          <Card key={day.toISOString()} className={cn(isToday && "border-primary")}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">
-                <div
-                  className={cn(
-                    "flex items-center gap-2",
-                    isToday && "text-primary"
-                  )}
-                >
+                <div className={cn("flex items-center gap-2", isToday && "text-primary")}>
                   {format(day, "EEE")}
                   <span
                     className={cn(
@@ -314,17 +299,15 @@ function WeekView({
                 <div className="space-y-2">
                   {dayWorkouts.map((workout) => {
                     const typeLabel =
-                      WORKOUT_TYPES.find((t) => t.value === workout.type)
-                        ?.label || workout.type;
+                      WORKOUT_TYPES.find((t) => t.value === workout.type)?.label ||
+                      workout.type;
                     return (
                       <Link
                         key={workout._id}
                         href={`/workouts/${workout._id}`}
                         className="block p-2 rounded-md border hover:bg-muted transition-colors"
                       >
-                        <div className="font-medium text-sm">
-                          {workout.workoutName}
-                        </div>
+                        <div className="font-medium text-sm">{workout.workoutName}</div>
                         <div className="flex items-center gap-2 mt-1">
                           <Badge variant="secondary" className="text-xs">
                             {typeLabel}
@@ -348,5 +331,15 @@ function WeekView({
         );
       })}
     </div>
+  );
+}
+
+// ─── Page (Suspense boundary required by useSearchParams) ────────────────────
+
+export default function HistoryPage() {
+  return (
+    <Suspense fallback={<Skeleton className="h-[600px] rounded-lg" />}>
+      <HistoryContent />
+    </Suspense>
   );
 }

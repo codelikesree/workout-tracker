@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Plus, Dumbbell, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,19 +36,32 @@ interface Workout {
   duration?: number;
 }
 
-export default function WorkoutsPage() {
-  const [typeFilter, setTypeFilter] = useState<string>("all");
-  const [page, setPage] = useState(1);
+function WorkoutsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [showStartSheet, setShowStartSheet] = useState(false);
+
+  const typeFilter = searchParams.get("type") ?? "all";
+  const page = Number(searchParams.get("page") ?? "1");
+
   const { data, isLoading } = useWorkouts({
     type: typeFilter === "all" ? undefined : typeFilter,
     page,
   });
 
-  // Reset to page 1 when filter changes
-  useEffect(() => {
-    setPage(1);
-  }, [typeFilter]);
+  const setTypeFilter = (type: string) => {
+    const p = new URLSearchParams(searchParams.toString());
+    type === "all" ? p.delete("type") : p.set("type", type);
+    p.delete("page");
+    router.replace(`?${p.toString()}`, { scroll: false });
+  };
+
+  const setPage = (next: number | ((prev: number) => number)) => {
+    const newPage = typeof next === "function" ? next(page) : next;
+    const p = new URLSearchParams(searchParams.toString());
+    newPage === 1 ? p.delete("page") : p.set("page", String(newPage));
+    router.replace(`?${p.toString()}`, { scroll: false });
+  };
 
   return (
     <main className="space-y-8" role="main">
@@ -145,5 +159,21 @@ export default function WorkoutsPage() {
         onOpenChange={setShowStartSheet}
       />
     </main>
+  );
+}
+
+export default function WorkoutsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-[200px] rounded-lg bg-muted animate-pulse" />
+          ))}
+        </div>
+      }
+    >
+      <WorkoutsContent />
+    </Suspense>
   );
 }

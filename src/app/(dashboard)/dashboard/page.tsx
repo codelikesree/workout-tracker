@@ -1,7 +1,5 @@
-"use client";
-
-import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { getSession } from "@/lib/auth/session";
 import { TrendingUp, FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared";
@@ -10,9 +8,10 @@ import { StartWorkoutCTA } from "@/components/dashboard/start-workout-cta";
 import { RecentTemplates } from "@/components/dashboard/recent-templates";
 import { QuickStats } from "@/components/dashboard/quick-stats";
 
-export default function DashboardPage() {
-  const { data: session } = useSession();
-  const userName = session?.user?.name || session?.user?.username || "there";
+export default async function DashboardPage() {
+  const session = await getSession();
+  const user = session?.user as { name?: string; username?: string } | undefined;
+  const userName = user?.name || user?.username || "there";
 
   return (
     <main className="space-y-8 max-w-2xl mx-auto" role="main">
