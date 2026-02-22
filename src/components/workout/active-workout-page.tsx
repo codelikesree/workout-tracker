@@ -34,7 +34,6 @@ export function ActiveWorkoutPage() {
   const [newExerciseName, setNewExerciseName] = useState("");
   const exerciseListRef = useRef<HTMLDivElement>(null);
 
-  // Handle no session: auto-start for guests, redirect for authenticated users
   useEffect(() => {
     if (authStatus === "loading") return;
     if (!isActive && !session) {
@@ -57,7 +56,6 @@ export function ActiveWorkoutPage() {
     }
   }, [isActive, session, authStatus, router, startWorkout]);
 
-  // Warn on page close
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
       if (session && session.status !== "saving") {
@@ -70,34 +68,29 @@ export function ActiveWorkoutPage() {
 
   if (!session) return null;
 
-  // Show finish summary when in "finishing" state
   if (session.status === "finishing" || session.status === "saving") {
     return <FinishWorkoutSummary />;
   }
 
   const handleAddExercise = async () => {
     if (newExerciseName) {
-      // Try to fetch last workout stats for this exercise
       let sets: Array<{ reps: number; weight: number; weightUnit: "kg" | "lbs" }> | undefined;
 
       if (authStatus === "authenticated") {
         try {
-          const params = new URLSearchParams({
-            exercises: newExerciseName,
-          });
+          const params = new URLSearchParams({ exercises: newExerciseName });
           const data = await fetchAPI<LastStatsResponse>(
             `/api/workouts/last-stats?${params}`
           );
-
           if (data.stats[newExerciseName]) {
-            sets = data.stats[newExerciseName].sets.map(s => ({
+            sets = data.stats[newExerciseName].sets.map((s) => ({
               reps: s.reps,
               weight: s.weight,
               weightUnit: s.weightUnit as "kg" | "lbs",
             }));
           }
         } catch {
-          // Non-critical, continue without last workout data
+          // Non-critical
         }
       }
 
@@ -120,31 +113,31 @@ export function ActiveWorkoutPage() {
     (acc, ex) => acc + ex.sets.length,
     0
   );
+  const progressPct = totalSets > 0 ? (completedSets / totalSets) * 100 : 0;
 
   return (
     <div className="h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Top bar */}
-      <div className="shrink-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-4 py-3">
-        <div className="flex items-center justify-between">
+      <div className="shrink-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3 min-w-0">
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-8 w-8 shrink-0 text-destructive"
+              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
               onClick={() => setShowDiscard(true)}
             >
               <X className="h-5 w-5" />
             </Button>
             <div className="min-w-0">
-              <h1 className="text-base font-semibold truncate">
+              <h1 className="text-sm font-semibold truncate leading-tight">
                 {session.workoutName}
               </h1>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <WorkoutTimer />
-                <span>
-                  {completedSets}/{totalSets} sets
-                </span>
+                <span>·</span>
+                <span>{completedSets}/{totalSets} sets</span>
               </div>
             </div>
           </div>
@@ -152,10 +145,18 @@ export function ActiveWorkoutPage() {
             type="button"
             size="sm"
             onClick={finishWorkout}
+            className="gap-1.5 shrink-0"
           >
-            <Flag className="h-4 w-4 mr-2" />
+            <Flag className="h-3.5 w-3.5" />
             Finish
           </Button>
+        </div>
+        {/* Thin progress bar */}
+        <div className="h-0.5 w-full bg-muted">
+          <div
+            className="h-full bg-primary transition-all duration-500 ease-out"
+            style={{ width: `${progressPct}%` }}
+          />
         </div>
       </div>
 
@@ -167,10 +168,10 @@ export function ActiveWorkoutPage() {
       {/* Exercise list */}
       <div
         ref={exerciseListRef}
-        className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4"
+        className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-3"
         style={{
-          WebkitOverflowScrolling: 'touch',
-          paddingBottom: 'max(2rem, env(safe-area-inset-bottom))'
+          WebkitOverflowScrolling: "touch",
+          paddingBottom: "max(2rem, env(safe-area-inset-bottom))",
         }}
       >
         {session.exercises.map((exercise, exerciseIndex) => (
@@ -178,9 +179,7 @@ export function ActiveWorkoutPage() {
             key={exercise.id}
             exerciseIndex={exerciseIndex}
             exercise={exercise}
-            isCurrentExercise={
-              exerciseIndex === session.currentExerciseIndex
-            }
+            isCurrentExercise={exerciseIndex === session.currentExerciseIndex}
             canRemove={session.exercises.length > 1}
           />
         ))}
@@ -221,7 +220,7 @@ export function ActiveWorkoutPage() {
           <Button
             type="button"
             variant="outline"
-            className="w-full border-dashed"
+            className="w-full border-dashed h-11"
             onClick={() => setShowAddExercise(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -230,7 +229,6 @@ export function ActiveWorkoutPage() {
         )}
       </div>
 
-      {/* Discard dialog */}
       <DiscardWorkoutDialog
         open={showDiscard}
         onOpenChange={setShowDiscard}

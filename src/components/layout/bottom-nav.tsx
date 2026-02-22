@@ -16,7 +16,6 @@ import {
   BarChart3,
   Upload,
   User,
-  ChevronRight,
 } from "lucide-react";
 import {
   Sheet,
@@ -138,24 +137,6 @@ function MoreSheet({
           })}
         </div>
 
-        {/* Quick-access row for the current active More item */}
-        <div className="mt-4 px-1">
-          {MORE_ITEMS.filter(
-            (item) =>
-              pathname === item.href || pathname.startsWith(`${item.href}/`)
-          ).map((item) => (
-            <div
-              key={item.href}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary/5 border border-primary/20"
-            >
-              <item.icon className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs text-primary font-medium">
-                Currently on {item.title}
-              </span>
-              <ChevronRight className="h-3 w-3 text-primary ml-auto" />
-            </div>
-          ))}
-        </div>
       </SheetContent>
     </Sheet>
   );

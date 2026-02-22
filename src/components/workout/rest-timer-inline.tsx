@@ -15,19 +15,19 @@ export function RestTimerInline() {
   const seconds = remainingSeconds % 60;
 
   return (
-    <div className="rounded-xl bg-primary/10 border border-primary/20 p-4 space-y-3">
+    <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-2.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Timer className="h-5 w-5 text-primary" />
-          <span className="text-sm font-medium text-primary">Rest Timer</span>
+          <Timer className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium text-primary">Rest</span>
         </div>
-        <span className="text-3xl font-bold tabular-nums text-primary">
+        <span className="text-2xl font-bold tabular-nums text-primary">
           {minutes}:{seconds.toString().padStart(2, "0")}
         </span>
       </div>
 
       {/* Progress bar */}
-      <div className="h-2 bg-muted rounded-full overflow-hidden">
+      <div className="h-1.5 bg-primary/15 rounded-full overflow-hidden">
         <div
           className="h-full bg-primary rounded-full transition-all duration-1000 ease-linear"
           style={{ width: `${progress * 100}%` }}
@@ -40,21 +40,21 @@ export function RestTimerInline() {
           type="button"
           variant="outline"
           size="sm"
-          className="flex-1"
+          className="flex-1 h-9"
           onClick={skipRest}
         >
-          <SkipForward className="h-4 w-4 mr-2" />
+          <SkipForward className="h-3.5 w-3.5 mr-1.5" />
           Skip
         </Button>
         <Button
           type="button"
           variant="outline"
           size="sm"
-          className="flex-1"
+          className="flex-1 h-9"
           onClick={() => extendRest(30)}
         >
-          <Plus className="h-4 w-4 mr-2" />
-          30s
+          <Plus className="h-3.5 w-3.5 mr-1.5" />
+          +30s
         </Button>
       </div>
     </div>

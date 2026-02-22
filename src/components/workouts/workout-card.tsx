@@ -1,16 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
-import { MoreVertical, Edit, Trash2, Eye, Dumbbell, Flame } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { format, isToday, isYesterday } from "date-fns";
+import { MoreVertical, Edit, Trash2, Eye, Clock, Dumbbell, Flame } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,14 +22,27 @@ import {
 import { useState } from "react";
 import { useDeleteWorkout } from "@/hooks/use-workouts";
 import { WORKOUT_TYPES } from "@/lib/constants/workout-types";
+import { cn } from "@/lib/utils";
+
+const TYPE_STYLES: Record<string, string> = {
+  strength: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  cardio: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  hiit: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+  flexibility: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
+  sports: "bg-pink-500/10 text-pink-600 dark:text-pink-400",
+  other: "bg-muted text-muted-foreground",
+};
+
+function formatWorkoutDate(dateStr: string) {
+  const date = new Date(dateStr);
+  if (isToday(date)) return "Today";
+  if (isYesterday(date)) return "Yesterday";
+  return format(date, "MMM d, yyyy");
+}
 
 interface Exercise {
   name: string;
-  sets: Array<{
-    reps: number;
-    weight: number;
-    weightUnit: string;
-  }>;
+  sets: Array<{ reps: number; weight: number; weightUnit: string }>;
 }
 
 interface WorkoutCardProps {
@@ -57,11 +63,8 @@ export function WorkoutCard({ workout }: WorkoutCardProps) {
 
   const typeLabel =
     WORKOUT_TYPES.find((t) => t.value === workout.type)?.label || workout.type;
-
-  const totalSets = workout.exercises.reduce(
-    (acc, ex) => acc + ex.sets.length,
-    0
-  );
+  const typeStyle = TYPE_STYLES[workout.type] ?? TYPE_STYLES.other;
+  const totalSets = workout.exercises.reduce((acc, ex) => acc + ex.sets.length, 0);
 
   const handleDelete = async () => {
     await deleteWorkout.mutateAsync(workout._id);
@@ -70,18 +73,66 @@ export function WorkoutCard({ workout }: WorkoutCardProps) {
 
   return (
     <>
-      <Card className="hover:shadow-md transition-shadow">
-        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-          <div className="space-y-1">
-            <CardTitle className="text-lg">{workout.workoutName}</CardTitle>
-            <CardDescription>
-              {format(new Date(workout.date), "EEEE, MMMM d, yyyy")}
-            </CardDescription>
+      <Card className="group relative hover:shadow-md transition-all duration-200 overflow-hidden">
+        {/* Main clickable body — links to detail view */}
+        <Link href={`/workouts/${workout._id}`} className="block p-4 pr-10">
+          <p className="text-xs text-muted-foreground mb-1">
+            {formatWorkoutDate(workout.date)}
+          </p>
+          <h3 className="font-semibold text-base leading-snug truncate mb-3">
+            {workout.workoutName}
+          </h3>
+
+          {/* Metrics row */}
+          <div className="flex items-center gap-3 mb-3 flex-wrap">
+            <span
+              className={cn("text-xs font-medium px-2 py-0.5 rounded-full", typeStyle)}
+            >
+              {typeLabel}
+            </span>
+            {workout.duration ? (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Clock className="h-3 w-3" />
+                {workout.duration}m
+              </span>
+            ) : null}
+            {(workout.estimatedCalories ?? 0) > 0 ? (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Flame className="h-3 w-3 text-orange-400" />
+                {workout.estimatedCalories} kcal
+              </span>
+            ) : null}
           </div>
+
+          {/* Exercise summary */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Dumbbell className="h-3 w-3 shrink-0" />
+              <span>
+                {workout.exercises.length} exercise
+                {workout.exercises.length !== 1 ? "s" : ""} · {totalSets} set
+                {totalSets !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground/80 truncate">
+              {workout.exercises.slice(0, 4).map((ex) => ex.name).join(", ")}
+              {workout.exercises.length > 4 &&
+                ` +${workout.exercises.length - 4} more`}
+            </p>
+          </div>
+        </Link>
+
+        {/* Floating action menu — outside the Link, no event conflicts */}
+        <div className="absolute top-3 right-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+              >
+                <MoreVertical className="h-3.5 w-3.5" />
+                <span className="sr-only">Actions</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -98,7 +149,7 @@ export function WorkoutCard({ workout }: WorkoutCardProps) {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="text-destructive"
+                className="text-destructive focus:text-destructive"
                 onClick={() => setShowDeleteDialog(true)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -106,45 +157,7 @@ export function WorkoutCard({ workout }: WorkoutCardProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2 mb-3">
-            <Badge variant="secondary">{typeLabel}</Badge>
-            {workout.duration && (
-              <Badge variant="outline">{workout.duration} min</Badge>
-            )}
-            {workout.estimatedCalories != null && workout.estimatedCalories > 0 && (
-              <Badge variant="outline" className="gap-1">
-                <Flame className="h-3 w-3 text-orange-500" />
-                {workout.estimatedCalories} kcal
-              </Badge>
-            )}
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Dumbbell className="h-4 w-4" />
-              <span>
-                {workout.exercises.length} exercise
-                {workout.exercises.length !== 1 ? "s" : ""}, {totalSets} set
-                {totalSets !== 1 ? "s" : ""}
-              </span>
-            </div>
-            <div className="text-sm">
-              {workout.exercises.slice(0, 3).map((ex, idx) => (
-                <span key={idx} className="text-muted-foreground">
-                  {ex.name}
-                  {idx < Math.min(workout.exercises.length, 3) - 1 && ", "}
-                </span>
-              ))}
-              {workout.exercises.length > 3 && (
-                <span className="text-muted-foreground">
-                  {" "}
-                  +{workout.exercises.length - 3} more
-                </span>
-              )}
-            </div>
-          </div>
-        </CardContent>
+        </div>
       </Card>
 
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -152,8 +165,8 @@ export function WorkoutCard({ workout }: WorkoutCardProps) {
           <DialogHeader>
             <DialogTitle>Delete Workout</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete &quot;{workout.workoutName}&quot;? This
-              action cannot be undone.
+              Are you sure you want to delete &quot;{workout.workoutName}&quot;?
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

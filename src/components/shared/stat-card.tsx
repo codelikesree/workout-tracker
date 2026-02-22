@@ -1,5 +1,5 @@
 import { LucideIcon } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -9,7 +9,7 @@ export interface StatCardProps {
   value: string | number;
   unit?: string;
   icon: LucideIcon;
-  trend?: number; // Percentage change (+12 = 12% increase)
+  trend?: number;
   loading?: boolean;
   className?: string;
   description?: string;
@@ -26,50 +26,49 @@ export function StatCard({
   description,
 }: StatCardProps) {
   return (
-    <Card className={cn("transition-all hover:shadow-md", className)}>
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardDescription className="text-xs font-medium uppercase tracking-wide">
-            {label}
-          </CardDescription>
-          <div className="rounded-full bg-primary/10 p-2">
+    <Card className={cn("transition-all hover:shadow-sm", className)}>
+      <CardContent className="pt-5 pb-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm text-muted-foreground font-medium truncate">{label}</p>
+            {loading ? (
+              <Skeleton className="h-8 w-20 mt-2" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold tabular-nums tracking-tight mt-1.5">
+                  {value}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  {unit && (
+                    <p className="text-xs text-muted-foreground">{unit}</p>
+                  )}
+                  {trend !== undefined && trend !== 0 && (
+                    <Badge
+                      variant={trend > 0 ? "default" : "secondary"}
+                      className={cn(
+                        "text-xs font-medium px-1.5",
+                        trend > 0 &&
+                          "bg-success/15 text-success border-success/20 hover:bg-success/20",
+                        trend < 0 && "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {trend > 0 ? "+" : ""}
+                      {trend}%
+                    </Badge>
+                  )}
+                </div>
+                {description && (
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    {description}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+          <div className="rounded-xl bg-primary/8 p-2.5 shrink-0">
             <Icon className="h-4 w-4 text-primary" />
           </div>
         </div>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <Skeleton className="h-8 w-20" />
-        ) : (
-          <>
-            <div className="text-2xl font-bold tabular-nums tracking-tight">
-              {value}
-            </div>
-            <div className="mt-1 flex items-center gap-2">
-              {unit && (
-                <p className="text-xs text-muted-foreground">{unit}</p>
-              )}
-              {trend !== undefined && trend !== 0 && (
-                <Badge
-                  variant={trend > 0 ? "default" : "secondary"}
-                  className={cn(
-                    "text-xs font-medium",
-                    trend > 0 && "bg-success text-success-foreground hover:bg-success/90",
-                    trend < 0 && "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {trend > 0 ? "+" : ""}
-                  {trend}%
-                </Badge>
-              )}
-            </div>
-            {description && (
-              <p className="mt-2 text-xs text-muted-foreground">
-                {description}
-              </p>
-            )}
-          </>
-        )}
       </CardContent>
     </Card>
   );

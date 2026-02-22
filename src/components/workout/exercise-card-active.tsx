@@ -4,7 +4,6 @@ import { Plus, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ConnectedSetRow } from "./set-row";
 import { cn } from "@/lib/utils";
 import { useActiveSession } from "@/contexts/active-session-context";
@@ -77,12 +76,12 @@ export function ExerciseCardActive({
   return (
     <div
       className={cn(
-        "rounded-xl border-2 transition-all",
+        "rounded-xl border transition-all duration-200",
         isCurrentExercise
-          ? "border-primary shadow-sm"
+          ? "border-primary/50 shadow-sm bg-card"
           : allCompleted
-          ? "border-green-500/30"
-          : "border-border"
+          ? "border-success/30 bg-success/5"
+          : "border-border bg-card"
       )}
     >
       {/* Header */}
@@ -118,15 +117,16 @@ export function ExerciseCardActive({
         >
           <div className="flex items-center gap-3 min-w-0">
             <h3 className="font-semibold text-base truncate">{exercise.name}</h3>
-            <Badge
-              variant={allCompleted ? "default" : "secondary"}
+            <span
               className={cn(
-                "shrink-0",
-                allCompleted && "bg-green-600 text-white"
+                "shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full",
+                allCompleted
+                  ? "bg-success/15 text-success"
+                  : "bg-muted text-muted-foreground"
               )}
             >
               {completedSets}/{totalSets}
-            </Badge>
+            </span>
           </div>
           <div className="flex items-center gap-2">
             {canRemove && (
